@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-09-17T18:53:15.269492+08:00",
+  "as_of_date": "2026-09-17",
+  "moneydj_filter": "成立日期 >= 2026-08-18",
+  "source": "moneydj-only",
+  "crawler_warnings": [],
+  "moneydj": [
+    {
+      "ticker": "009827",
+      "name": "玉山未來全球算力",
+      "established_date": "2026-08-24"
+    },
+    {
+      "ticker": "009828",
+      "name": "中信台日韓PCB",
+      "established_date": "2026-08-24"
+    },
+    {
+      "ticker": "00409A",
+      "name": "主動復華全球50",
+      "established_date": "2026-08-20"
+    }
+  ],
+  "new_list": [
+    "009827",
+    "009828",
+    "00409A"
+  ]
+}
