@@ -1,0 +1,11 @@
+.env
+.DS_Store
+__pycache__/
+*.py[cod]
+node_modules/
+artifacts/
+etf_output.csv
+etf_output.xlsx
+*.csv
+*.xlsx
+*.log

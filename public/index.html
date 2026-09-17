@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETF Research Tool</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232734;
+    --border: #2e3345;
+    --text: #e4e6ed;
+    --text-dim: #8b8fa3;
+    --accent: #6c7bf7;
+    --accent-hover: #8590fa;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  header {
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0;
+    margin-bottom: 6px;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .input-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    align-items: stretch;
+  }
+
+  .input-section input {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .input-section input:focus {
+    border-color: var(--accent);
+  }
+
+  .input-section input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .btn {
+    padding: 12px 28px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: var(--accent-hover); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-export {
+    padding: 8px 18px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .btn-export:hover {
+    background: var(--border);
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .toolbar .count {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .status {
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: none;
+  }
+
+  .status.show { display: flex; align-items: center; gap: 10px; }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(108, 123, 247, 0.04); }
+
+  .cell-ticker {
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .cell-name { min-width: 160px; }
+
+  .cell-desc {
+    min-width: 320px;
+    max-width: 420px;
+    line-height: 1.6;
+    font-size: 12.5px;
+    color: var(--text-dim);
+  }
+
+  .description-copy { margin-bottom: 10px; }
+
+  .source-details {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    font-size: 11px;
+  }
+
+  .source-details summary {
+    color: var(--accent-hover);
+    cursor: pointer;
+    font-size: 11px;
+    user-select: none;
+  }
+
+  .source-details summary:hover { color: var(--text); }
+
+  .source-list { margin-top: 8px; }
+
+  .source-section-title {
+    margin-top: 10px;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .source-query {
+    margin-top: 8px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .source-item {
+    padding: 8px 0;
+    border-top: 1px solid rgba(46, 51, 69, 0.75);
+  }
+
+  .source-item:first-child { border-top: none; }
+
+  .source-title {
+    display: block;
+    color: var(--text);
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .source-title:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  .source-snippet {
+    margin-top: 4px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .source-full-preview {
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+
+  .source-empty { color: var(--text-dim); }
+
+  .meta-note {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .usage-panel {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .usage-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .usage-model {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 400;
+  }
+
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .usage-block {
+    padding: 9px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .usage-label {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .usage-total {
+    display: block;
+    margin-top: 3px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .usage-detail {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-dim);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .usage-cost {
+    display: block;
+    margin-top: 4px;
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .usage-footnote {
+    margin-top: 8px;
+    color: var(--text-dim);
+    font-size: 10px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .tag-equity { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+  .tag-fi { background: rgba(251, 191, 36, 0.12); color: var(--yellow); }
+  .tag-commodity { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+  .tag-currency { background: rgba(108, 123, 247, 0.12); color: var(--accent); }
+  .tag-yes { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+  .tag-no { background: rgba(139, 143, 163, 0.08); color: var(--text-dim); }
+
+  .tag-risk {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .tag-rr1, .tag-rr2 { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+  .tag-rr3 { background: rgba(251, 191, 36, 0.12); color: var(--yellow); }
+  .tag-rr4, .tag-rr5 { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+
+  .empty { display: flex; justify-content: center; align-items: center; height: 200px; }
+  .empty p { color: var(--text-dim); font-size: 14px; }
+
+  .error-row { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>ETF Research Tool</h1>
+    <p>輸入台灣 ETF 代號（逗號分隔），自動搜尋並整理分類表格</p>
+  </header>
+
+  <div class="input-section">
+    <input type="text" id="tickerInput" placeholder="00409A, 009827, 009828, 009829" autofocus>
+    <button class="btn" id="searchBtn" onclick="doResearch()">搜尋</button>
+  </div>
+
+  <div class="status" id="status">
+    <div class="spinner"></div>
+    <span id="statusText">搜尋中...</span>
+  </div>
+
+  <div id="resultsArea"></div>
+</div>
+
+<script>
+let currentResults = [];
+let currentMeta = null;
+let sessionClaudeUsage = {
+  requests: 0,
+  input_tokens: 0,
+  output_tokens: 0,
+  total_tokens: 0,
+  input_cost_usd: 0,
+  output_cost_usd: 0,
+  total_cost_usd: 0,
+};
+
+document.getElementById("tickerInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") doResearch();
+});
+
+async function doResearch() {
+  const raw = document.getElementById("tickerInput").value.trim();
+  if (!raw) return;
+
+  const tickers = raw.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean);
+  if (tickers.length === 0) return;
+
+  const btn = document.getElementById("searchBtn");
+  const status = document.getElementById("status");
+  const statusText = document.getElementById("statusText");
+
+  btn.disabled = true;
+  status.className = "status show";
+  statusText.textContent = `正在研究 ${tickers.length} 檔 ETF...`;
+  document.getElementById("resultsArea").innerHTML = "";
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 min timeout
+    const resp = await fetch("/api/research", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tickers }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    currentResults = data.results || [];
+    currentMeta = data.meta || null;
+    sessionClaudeUsage = addUsage(sessionClaudeUsage, currentMeta?.claude_usage);
+    if (currentMeta) currentMeta.claude_session_usage = sessionClaudeUsage;
+    renderTable(currentResults, currentMeta);
+    const searchCount = currentMeta?.tinyfish_search_calls ?? tickers.length;
+    statusText.textContent = `完成！共 ${currentResults.length} 檔 ETF，TinyFish 搜尋 ${searchCount} 次`;
+    setTimeout(() => { status.className = "status"; }, 2500);
+  } catch (err) {
+    const message = err?.message || "未知錯誤";
+    statusText.textContent = /failed to fetch/i.test(message)
+      ? "錯誤：無法連線到後端服務，請確認 localhost:3456 已啟動。"
+      : `錯誤：${message}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function categoryTag(cat) {
+  const cls = { Equity: "tag-equity", "Fixed Income": "tag-fi", Commodities: "tag-commodity", Currency: "tag-currency" };
+  return `<span class="tag ${cls[cat] || ""}">${escapeHtml(cat || "-")}</span>`;
+}
+
+function boolTag(val) {
+  return `<span class="tag ${val === "Yes" ? "tag-yes" : "tag-no"}">${escapeHtml(val || "-")}</span>`;
+}
+
+function riskTag(rr) {
+  const cls = rr ? `tag-risk tag-${rr.toLowerCase()}` : "";
+  return `<span class="${cls}">${escapeHtml(rr || "-")}</span>`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function sourceHost(value) {
+  try { return new URL(value).hostname.replace(/^www\./, ""); }
+  catch { return "來源連結"; }
+}
+
+function researchErrorLabel(error) {
+  const labels = {
+    search_rate_limited: "TinyFish 搜尋已達到每分鐘速率限制，請稍後再試。",
+    search_failed: "TinyFish 搜尋失敗，請確認 CLI 登入狀態。",
+    search_parse_error: "TinyFish 搜尋回覆格式無法解析。",
+    no_results: "TinyFish 沒有找到搜尋結果。",
+  };
+  return labels[error] || error || "未知錯誤";
+}
+
+function addUsage(total, usage) {
+  if (!usage) return total;
+  return {
+    requests: (total.requests || 0) + (usage.requests || 0),
+    input_tokens: (total.input_tokens || 0) + (usage.input_tokens || 0),
+    output_tokens: (total.output_tokens || 0) + (usage.output_tokens || 0),
+    total_tokens: (total.total_tokens || 0) + (usage.total_tokens || 0),
+    input_cost_usd: (total.input_cost_usd || 0) + (usage.input_cost_usd || 0),
+    output_cost_usd: (total.output_cost_usd || 0) + (usage.output_cost_usd || 0),
+    total_cost_usd: (total.total_cost_usd || 0) + (usage.total_cost_usd || 0),
+  };
+}
+
+function formatTokens(value) {
+  return new Intl.NumberFormat("en-US").format(Number(value) || 0);
+}
+
+function formatUsd(value) {
+  return `US$${(Number(value) || 0).toFixed(6)}`;
+}
+
+function usageBlock(label, usage) {
+  const safeUsage = usage || {};
+  return `
+    <div class="usage-block">
+      <span class="usage-label">${label}</span>
+      <strong class="usage-total">${formatTokens(safeUsage.total_tokens)} tokens</strong>
+      <span class="usage-detail">輸入 ${formatTokens(safeUsage.input_tokens)} · 輸出 ${formatTokens(safeUsage.output_tokens)} · ${formatTokens(safeUsage.requests)} 次呼叫</span>
+      <span class="usage-cost">估算費用 ${formatUsd(safeUsage.total_cost_usd)}</span>
+    </div>`;
+}
+
+function renderUsagePanel(meta) {
+  const current = meta?.claude_usage || {};
+  const cumulative = meta?.claude_session_usage || sessionClaudeUsage;
+  const pricing = meta?.claude_pricing || {};
+  const model = pricing.model || "claude-haiku-4-5-20251001";
+  const inputPrice = pricing.input_usd_per_million_tokens ?? 1;
+  const outputPrice = pricing.output_usd_per_million_tokens ?? 5;
+
+  return `
+    <section class="usage-panel">
+      <div class="usage-heading">
+        <span>Claude 使用量與估算費用</span>
+        <span class="usage-model">${escapeHtml(model)}</span>
+      </div>
+      <div class="usage-grid">
+        ${usageBlock("本次研究", current)}
+        ${usageBlock("本頁累計", cumulative)}
+      </div>
+      <div class="usage-footnote">估算單價：輸入 US$${inputPrice}／百萬 tokens · 輸出 US$${outputPrice}／百萬 tokens；實際帳單可能因官方定價或折扣而不同。</div>
+    </section>`;
+}
+
+function renderTinyfishSources(result) {
+  const sources = Array.isArray(result.tinyfish_results) ? result.tinyfish_results : [];
+  const fetchedSources = Array.isArray(result.url_to_markdown_results) ? result.url_to_markdown_results : [];
+  if (!sources.length && !fetchedSources.length) return '<span class="source-empty">沒有可顯示的搜尋結果</span>';
+
+  const renderSourceItem = (source, index, isFetched = false) => {
+    const url = safeUrl(source.url);
+    const title = escapeHtml(source.title || source.url || `搜尋結果 ${index + 1}`);
+    const link = url
+      ? `<a class="source-title" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${title}</a>`
+      : `<span class="source-title">${title}</span>`;
+    const host = url ? `<div class="source-snippet">${escapeHtml(sourceHost(url))}</div>` : "";
+    const body = isFetched ? source.text_preview : source.snippet;
+    const snippet = body
+      ? `<div class="source-snippet ${isFetched ? "source-full-preview" : ""}">${escapeHtml(body)}</div>`
+      : "";
+    return `<div class="source-item">${link}${host}${snippet}</div>`;
+  };
+
+  const searchItems = sources.map((source, index) => renderSourceItem(source, index)).join("");
+  const fetchedItems = fetchedSources.map((source, index) => renderSourceItem(source, index, true)).join("");
+
+  return `
+    <details class="source-details">
+      <summary>TinyFish 搜尋結果（${sources.length}） · URL to Markdown 全文（${fetchedSources.length}）</summary>
+      <div class="source-query">查詢：${escapeHtml(result.tinyfish_query || "")}</div>
+      ${searchItems ? `<div class="source-section-title">搜尋摘要</div><div class="source-list">${searchItems}</div>` : ""}
+      ${fetchedItems ? `<div class="source-section-title">URL to Markdown 全文摘錄</div><div class="source-list">${fetchedItems}</div>` : ""}
+    </details>`;
+}
+
+function renderTable(results, meta) {
+  const usagePanel = renderUsagePanel(meta);
+  if (!results.length) {
+    document.getElementById("resultsArea").innerHTML = usagePanel + '<div class="empty"><p>無結果</p></div>';
+    return;
+  }
+
+  const cols = [
+    { key: "ticker", label: "ticker" },
+    { key: "繁中名稱", label: "繁中名稱" },
+    { key: "主題標籤", label: "主題標籤" },
+    { key: "zacks_category", label: "zacks_category" },
+    { key: "zacks_sector", label: "zacks_sector" },
+    { key: "sector_general", label: "sector_general" },
+    { key: "sector_specific", label: "sector_specific" },
+    { key: "commodity_type", label: "commodity_type" },
+    { key: "currency", label: "currency" },
+    { key: "leveraged", label: "leveraged" },
+    { key: "actively_managed", label: "actively_managed" },
+    { key: "risk_rank", label: "risk_rank" },
+    { key: "繁中敘述", label: "繁中敘述" },
+  ];
+
+  let html = usagePanel + `
+    <div class="toolbar">
+      <span class="count">${results.length} 檔 ETF
+        ${meta ? `<span class="meta-note">TinyFish 搜尋 ${meta.tinyfish_search_calls || 0} 次 · URL to Markdown ${meta.url_to_markdown_pages || 0}/${meta.url_to_markdown_calls || 0} 頁 · Claude ${meta.claude_calls || 0} 次</span>` : ""}
+      </span>
+      <button class="btn btn-export" onclick="exportCSV()">匯出 CSV</button>
+    </div>
+    <div class="table-wrap"><table>
+    <thead><tr>${cols.map(c => `<th>${c.label}</th>`).join("")}</tr></thead>
+    <tbody>`;
+
+  for (const r of results) {
+    if (r.error) {
+      html += `<tr class="error-row"><td class="cell-ticker">${escapeHtml(r.ticker)}</td><td colspan="${cols.length - 1}">${escapeHtml(researchErrorLabel(r.error))}</td></tr>`;
+      continue;
+    }
+    html += "<tr>";
+    for (const c of cols) {
+      const v = r[c.key] || "";
+      if (c.key === "ticker") html += `<td class="cell-ticker">${escapeHtml(v)}</td>`;
+      else if (c.key === "繁中名稱") html += `<td class="cell-name">${escapeHtml(v)}</td>`;
+      else if (c.key === "繁中敘述") html += `<td class="cell-desc"><div class="description-copy">${escapeHtml(v)}</div>${renderTinyfishSources(r)}</td>`;
+      else if (c.key === "zacks_category") html += `<td>${categoryTag(v)}</td>`;
+      else if (c.key === "leveraged" || c.key === "actively_managed") html += `<td>${boolTag(v)}</td>`;
+      else if (c.key === "risk_rank") html += `<td>${riskTag(v)}</td>`;
+      else html += `<td>${escapeHtml(v || "-")}</td>`;
+    }
+    html += "</tr>";
+  }
+
+  html += "</tbody></table></div>";
+  document.getElementById("resultsArea").innerHTML = html;
+}
+
+function exportCSV() {
+  if (!currentResults.length) return;
+  const cols = ["ticker","繁中名稱","主題標籤","zacks_category","zacks_sector","sector_general","sector_specific","commodity_type","currency","leveraged","actively_managed","risk_rank","繁中敘述"];
+  const bom = "\uFEFF";
+  let csv = bom + cols.join(",") + "\n";
+  for (const r of currentResults) {
+    if (r.error) continue;
+    csv += cols.map(c => {
+      let v = (r[c] || "").toString().replace(/"/g, '""');
+      return `"${v}"`;
+    }).join(",") + "\n";
+  }
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `etf_research_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

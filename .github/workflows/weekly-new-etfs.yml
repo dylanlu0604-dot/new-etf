@@ -1,0 +1,82 @@
+name: Weekly New ETF Research
+
+on:
+  schedule:
+    # 14:00 Asia/Taipei = 06:00 UTC, every Thursday.
+    - cron: "0 6 * * 4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect-and-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install TinyFish CLI
+        run: npm install --global @tiny-fish/cli
+
+      - name: Collect WantGoo and MoneyDJ intersection
+        env:
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+        run: |
+          mkdir -p artifacts
+          xvfb-run --auto-servernum --server-args="-screen 0 1440x1200x24" \
+            python scripts/collect_new_etfs.py \
+              --output-dir artifacts \
+              --wantgoo-tinyfish-fallback
+
+      - name: Run ETF research for new_list
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+          URL_TO_MARKDOWN_FALLBACK: tinyfish
+          CLAUDE_BATCH_SIZE: "3"
+        run: |
+          new_list="$(tr -d '\r\n' < artifacts/new_list.txt)"
+          if [ -z "$new_list" ]; then
+            python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          columns = [
+              "ticker", "主題標籤", "zacks_category", "zacks_sector",
+              "sector_general", "sector_specific", "commodity_type",
+              "currency", "risk_rank", "繁中敘述",
+          ]
+          with Path("artifacts/etf_research.csv").open("w", newline="", encoding="utf-8-sig") as handle:
+              csv.DictWriter(handle, fieldnames=columns).writeheader()
+          PY
+            echo "new_list is empty; no ETF research call was needed."
+          else
+            echo "Researching new_list: $new_list"
+            python etf_research_update.py -o artifacts/etf_research.csv "$new_list"
+          fi
+
+      - name: Upload weekly results
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-etf-research-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
