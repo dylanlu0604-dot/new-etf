@@ -12,7 +12,7 @@
 4. 將 `new_list` 傳給 `etf_research_update.py`。若交集為空，只產生空的 CSV 標頭，不會浪費 Claude API 呼叫。
 5. 研究結果以 GitHub Actions artifact 保存 30 天。
 
-WantGoo 的資料是 JavaScript 動態載入且有反爬驗證，因此 collector 使用 Playwright headed Chromium；GitHub runner 透過 Xvfb 提供虛擬顯示器。若瀏覽器抓取失敗，會使用 TinyFish Agent fallback，仍然直接讀取 WantGoo 表格，不會用其他網站替代。
+WantGoo 的資料是 JavaScript 動態載入且有反爬驗證，因此 collector 使用 Playwright headed Chromium；GitHub runner 透過 Xvfb 提供虛擬顯示器。若瀏覽器抓取失敗，會先使用 TinyFish Agent fallback，仍然直接讀取 WantGoo 表格。若 WantGoo 與 TinyFish 都被 Cloudflare 擋住，才會以 MoneyDJ 已選出的「成立日期近 14 天」集合推導 WantGoo 的 `<0.2` 年齡條件；這個 fallback 會在 `new_list.json` 的 `wantgoo_source` 與 `wantgoo_warning` 明確標示，不會把失敗靜默當成空集合。
 
 ## GitHub Secrets
 

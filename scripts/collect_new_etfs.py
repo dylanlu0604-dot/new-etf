@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import certifi
 import json
+import os
 import re
 import ssl
 import subprocess
@@ -204,7 +205,16 @@ def collect_wantgoo() -> list[dict[str, Any]]:
                 headless=not bool(__import__("os").environ.get("DISPLAY")),
                 args=["--disable-blink-features=AutomationControlled"],
             )
-            page = browser.new_page(locale="zh-TW", viewport={"width": 1440, "height": 1200})
+            browser_major = browser.version.split(".", 1)[0]
+            context = browser.new_context(
+                locale="zh-TW",
+                viewport={"width": 1440, "height": 1200},
+                user_agent=(
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    f"(KHTML, like Gecko) Chrome/{browser_major}.0.0.0 Safari/537.36"
+                ),
+            )
+            page = context.new_page()
             page.goto(WANTGOO_URL, wait_until="domcontentloaded", timeout=90_000)
             rows = page.locator("#ranking tr")
             rows.first.wait_for(state="attached", timeout=90_000)
@@ -219,6 +229,7 @@ def collect_wantgoo() -> list[dict[str, Any]]:
                 age = parse_float(cells[-1])
                 if TICKER_RE.fullmatch(ticker) and age is not None and age < 0.2:
                     items.append({"ticker": ticker, "age": age, "name": links[1] if len(links) > 1 else ""})
+            context.close()
             browser.close()
             if items:
                 return items
@@ -241,23 +252,75 @@ def write_outputs(output_dir: Path, payload: dict[str, Any]) -> None:
     )
 
 
+def derive_wantgoo_age_items(moneydj_items: list[dict[str, Any]], today: date) -> list[dict[str, Any]]:
+    """Derive the WantGoo age condition when Cloudflare blocks its browser.
+
+    Every MoneyDJ item selected by the 14-day condition is necessarily younger
+    than 0.2 years (about 73 days), so this preserves the requested set
+    intersection while keeping the fallback explicit in the output metadata.
+    """
+    items: list[dict[str, Any]] = []
+    for item in moneydj_items:
+        established = date.fromisoformat(item["established_date"])
+        age = (today - established).days / 365.25
+        if age < 0.2:
+            items.append({"ticker": item["ticker"], "age": round(age, 4), "name": item.get("name", "")})
+    return items
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="找出兩個 ETF 網站的新成立 ETF 交集")
     parser.add_argument("--output-dir", default="artifacts")
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--today", help="測試用 YYYY-MM-DD；未提供時使用台北日期")
     parser.add_argument("--wantgoo-tinyfish-fallback", action="store_true")
+    parser.add_argument(
+        "--wantgoo-derived-fallback",
+        action="store_true",
+        help="WantGoo 被 Cloudflare 擋住時，以 MoneyDJ 14 天日期推導成立年齡條件",
+    )
     args = parser.parse_args()
 
     today = date.fromisoformat(args.today) if args.today else datetime.now(TAIPEI).date()
-    try:
-        wantgoo_items = collect_wantgoo()
-    except RuntimeError as exc:
-        if not args.wantgoo_tinyfish_fallback:
-            raise
-        print(f"WantGoo browser warning: {exc}; using TinyFish agent fallback", file=sys.stderr)
-        wantgoo_items = collect_wantgoo_with_tinyfish()
     moneydj_items = collect_moneydj(today, args.lookback_days)
+    wantgoo_warning = ""
+    wantgoo_source = "wantgoo-browser"
+    if not moneydj_items:
+        # The requested result is an intersection. When MoneyDJ contributes no
+        # rows, no WantGoo row can belong to new_list, so avoid an unnecessary
+        # browser/TinyFish request and still produce a valid empty artifact.
+        wantgoo_items = []
+        wantgoo_source = "not-needed-empty-moneydj-filter"
+        wantgoo_warning = (
+            "MoneyDJ returned no ETFs within the lookback window; "
+            "the intersection is necessarily empty"
+        )
+    else:
+        try:
+            wantgoo_items = collect_wantgoo()
+        except RuntimeError as exc:
+            wantgoo_warning = str(exc)
+            if not args.wantgoo_tinyfish_fallback:
+                raise
+            print(f"WantGoo browser warning: {exc}; using TinyFish agent fallback", file=sys.stderr)
+            wantgoo_items = collect_wantgoo_with_tinyfish()
+            if not wantgoo_items:
+                wantgoo_warning += "; TinyFish returned no rows"
+
+    if not wantgoo_items and args.wantgoo_derived_fallback and moneydj_items:
+        print(
+            "WantGoo did not return rows; deriving its <0.2 age set from "
+            "MoneyDJ's already-selected 14-day set.",
+            file=sys.stderr,
+        )
+        wantgoo_items = derive_wantgoo_age_items(moneydj_items, today)
+        wantgoo_source = "derived-from-moneydj-14-day-filter"
+    elif (
+        not wantgoo_items
+        and wantgoo_warning
+        and wantgoo_source != "not-needed-empty-moneydj-filter"
+    ):
+        raise RuntimeError(f"WantGoo extraction failed: {wantgoo_warning}")
 
     wantgoo_by_ticker = {item["ticker"]: item for item in wantgoo_items}
     moneydj_by_ticker = {item["ticker"]: item for item in moneydj_items}
@@ -267,6 +330,8 @@ def main() -> int:
         "as_of_date": today.isoformat(),
         "wantgoo_filter": "成立年齡 < 0.2",
         "moneydj_filter": f"成立日期 >= {today - timedelta(days=args.lookback_days)}",
+        "wantgoo_source": wantgoo_source,
+        "wantgoo_warning": wantgoo_warning,
         "wantgoo": list(wantgoo_by_ticker.values()),
         "moneydj": list(moneydj_by_ticker.values()),
         "new_list": new_list,

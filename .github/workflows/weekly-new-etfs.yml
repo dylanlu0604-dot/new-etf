@@ -44,7 +44,8 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1440x1200x24" \
             python scripts/collect_new_etfs.py \
               --output-dir artifacts \
-              --wantgoo-tinyfish-fallback
+              --wantgoo-tinyfish-fallback \
+              --wantgoo-derived-fallback
 
       - name: Run ETF research for new_list
         env:
