@@ -26,7 +26,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -m playwright install --with-deps chromium
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -36,15 +35,10 @@ jobs:
       - name: Install TinyFish CLI
         run: npm install --global @tiny-fish/cli
 
-      - name: Collect WantGoo and MoneyDJ union
-        env:
-          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+      - name: Collect new ETFs from MoneyDJ
         run: |
           mkdir -p artifacts
-          xvfb-run --auto-servernum --server-args="-screen 0 1440x1200x24" \
-            python scripts/collect_new_etfs.py \
-              --output-dir artifacts \
-              --wantgoo-tinyfish-fallback
+          python scripts/collect_new_etfs.py --output-dir artifacts
 
       - name: Run ETF research for new_list
         env:

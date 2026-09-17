@@ -1,21 +1,13 @@
 #!/usr/bin/env python3
-"""Collect newly established Taiwan ETFs from WantGoo and MoneyDJ.
-
-The two source lists are filtered independently and then unioned by normalized
-ticker. WantGoo is rendered in a browser because its ranking data is loaded by
-JavaScript and its API is protected by a client signature. MoneyDJ exposes the
-establishment date in static table HTML.
-"""
+"""Collect newly established Taiwan ETFs from MoneyDJ."""
 
 from __future__ import annotations
 
 import argparse
 import certifi
 import json
-import os
 import re
 import ssl
-import subprocess
 import sys
 from datetime import date, datetime, timedelta
 from html.parser import HTMLParser
@@ -25,7 +17,6 @@ from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 
-WANTGOO_URL = "https://www.wantgoo.com/stock/etf/ranking/age"
 MONEYDJ_URL = (
     "https://www.moneydj.com/etf/x/rank/rank0005.xdjhtm?"
     "erank=new&eord=t100050&esort=1"
@@ -38,11 +29,6 @@ def normalize_ticker(value: str) -> str:
     """Normalize source formats such as 009827.TW to 009827."""
     ticker = re.sub(r"\.TW$", "", str(value or "").strip(), flags=re.IGNORECASE)
     return ticker.upper()
-
-
-def parse_float(value: str) -> float | None:
-    match = re.search(r"-?\d+(?:\.\d+)?", str(value or "").replace(",", ""))
-    return float(match.group(0)) if match else None
 
 
 class MoneyDJRowParser(HTMLParser):
@@ -139,125 +125,6 @@ def collect_moneydj(today: date, lookback_days: int) -> list[dict[str, Any]]:
     return items
 
 
-def extract_tinyfish_result(raw: str) -> Any:
-    """Extract resultJson from either JSON or SSE output from TinyFish."""
-    candidates: list[Any] = []
-    for line in raw.splitlines():
-        line = line.strip()
-        if line.startswith("data:"):
-            line = line[5:].strip()
-        if not line:
-            continue
-        try:
-            candidates.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
-    for item in reversed(candidates):
-        if isinstance(item, dict) and item.get("resultJson") is not None:
-            result = item["resultJson"]
-            if isinstance(result, str):
-                try:
-                    return json.loads(result)
-                except json.JSONDecodeError:
-                    return None
-            return result
-        if isinstance(item, (list, dict)):
-            return item
-    return None
-
-
-def collect_wantgoo_with_tinyfish() -> list[dict[str, Any]]:
-    goal = (
-        "Navigate the page and extract every visible Taiwan ETF row whose "
-        "成立年齡 is strictly less than 0.2. Return JSON only as "
-        "{\"items\":[{\"ticker\":\"string\",\"age\":number,\"name\":\"string\"}]} . "
-        "Read the table itself; do not infer from search snippets."
-    )
-    try:
-        result = subprocess.run(
-            ["tinyfish", "agent", "run", "--url", WANTGOO_URL, goal, "--sync"],
-            capture_output=True,
-            text=True,
-            timeout=240,
-            check=False,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError(f"TinyFish WantGoo fallback failed: {exc}") from exc
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout).strip().splitlines()
-        message = detail[-1] if detail else "no diagnostic output"
-        raise RuntimeError(
-            f"TinyFish WantGoo fallback exited with code {result.returncode}: {message}"
-        )
-    payload = extract_tinyfish_result(result.stdout)
-    raw_items = payload.get("items", []) if isinstance(payload, dict) else payload
-    if not isinstance(raw_items, list):
-        return []
-    items: list[dict[str, Any]] = []
-    for item in raw_items:
-        if not isinstance(item, dict):
-            continue
-        ticker = normalize_ticker(item.get("ticker", ""))
-        age = parse_float(str(item.get("age", "")))
-        if TICKER_RE.fullmatch(ticker) and age is not None and age < 0.2:
-            items.append({"ticker": ticker, "age": age, "name": str(item.get("name", ""))})
-    return items
-
-
-def collect_wantgoo() -> list[dict[str, Any]]:
-    try:
-        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-        from playwright.sync_api import sync_playwright
-    except ImportError as exc:
-        raise RuntimeError(
-            "Playwright is required for WantGoo. Install requirements.txt first."
-        ) from exc
-
-    try:
-        with sync_playwright() as playwright:
-            # GitHub Actions runs this script under xvfb so Chromium is headed;
-            # local terminal runs without DISPLAY and use headless Chromium.
-            browser = playwright.chromium.launch(
-                headless=not bool(__import__("os").environ.get("DISPLAY")),
-                args=["--disable-blink-features=AutomationControlled"],
-            )
-            browser_major = browser.version.split(".", 1)[0]
-            context = browser.new_context(
-                locale="zh-TW",
-                viewport={"width": 1440, "height": 1200},
-                user_agent=(
-                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                    f"(KHTML, like Gecko) Chrome/{browser_major}.0.0.0 Safari/537.36"
-                ),
-            )
-            page = context.new_page()
-            page.goto(WANTGOO_URL, wait_until="domcontentloaded", timeout=90_000)
-            rows = page.locator("#ranking tr")
-            rows.first.wait_for(state="attached", timeout=90_000)
-            items: list[dict[str, Any]] = []
-            for index in range(rows.count()):
-                row = rows.nth(index)
-                cells = row.locator("td").all_text_contents()
-                links = row.locator("a").all_text_contents()
-                if len(cells) < 3 or not links:
-                    continue
-                ticker = normalize_ticker(links[0])
-                age = parse_float(cells[-1])
-                if TICKER_RE.fullmatch(ticker) and age is not None and age < 0.2:
-                    items.append({"ticker": ticker, "age": age, "name": links[1] if len(links) > 1 else ""})
-            context.close()
-            browser.close()
-            if items:
-                return items
-            raise RuntimeError("WantGoo page loaded but returned no ranking rows")
-    except Exception as exc:
-        if isinstance(exc, RuntimeError) and str(exc).startswith("WantGoo page loaded"):
-            raise
-        if "PlaywrightTimeoutError" in type(exc).__name__ or isinstance(exc, PlaywrightTimeoutError):
-            raise RuntimeError(f"WantGoo browser timed out: {exc}") from exc
-        raise RuntimeError(f"WantGoo browser extraction failed: {exc}") from exc
-
-
 def write_outputs(output_dir: Path, payload: dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "new_list.json").write_text(
@@ -268,29 +135,14 @@ def write_outputs(output_dir: Path, payload: dict[str, Any]) -> None:
     )
 
 
-def union_tickers(*collections: list[dict[str, Any]]) -> list[str]:
-    """Return tickers in source order, preserving the first occurrence."""
-    result: list[str] = []
-    seen: set[str] = set()
-    for collection in collections:
-        for item in collection:
-            ticker = normalize_ticker(item.get("ticker", ""))
-            if ticker and ticker not in seen:
-                seen.add(ticker)
-                result.append(ticker)
-    return result
-
-
 def main() -> int:
-    parser = argparse.ArgumentParser(description="找出兩個 ETF 網站的新成立 ETF 聯集")
+    parser = argparse.ArgumentParser(description="找出 MoneyDJ 近14天成立的新 ETF")
     parser.add_argument("--output-dir", default="artifacts")
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--today", help="測試用 YYYY-MM-DD；未提供時使用台北日期")
-    parser.add_argument("--wantgoo-tinyfish-fallback", action="store_true")
     args = parser.parse_args()
 
     today = date.fromisoformat(args.today) if args.today else datetime.now(TAIPEI).date()
-    crawler_warnings: list[str] = []
     try:
         moneydj_items = collect_moneydj(today, args.lookback_days)
     except Exception as exc:
@@ -298,54 +150,21 @@ def main() -> int:
         print(f"WARNING: {warning}", file=sys.stderr)
         raise RuntimeError(warning) from exc
 
-    wantgoo_warning = ""
-    wantgoo_source = "wantgoo-browser"
-    try:
-        wantgoo_items = collect_wantgoo()
-    except RuntimeError as exc:
-        browser_warning = f"WantGoo browser crawler failed: {exc}"
-        wantgoo_warning = browser_warning
-        crawler_warnings.append(browser_warning)
-        print(f"WARNING: {browser_warning}", file=sys.stderr)
-        if not args.wantgoo_tinyfish_fallback:
-            raise RuntimeError(browser_warning) from exc
-        try:
-            wantgoo_items = collect_wantgoo_with_tinyfish()
-        except Exception as fallback_exc:
-            fallback_warning = f"WantGoo TinyFish fallback failed: {fallback_exc}"
-            crawler_warnings.append(fallback_warning)
-            print(f"WARNING: {fallback_warning}", file=sys.stderr)
-            raise RuntimeError(f"{browser_warning}; {fallback_warning}") from fallback_exc
-        if not wantgoo_items:
-            fallback_warning = "WantGoo TinyFish fallback returned no valid rows"
-            crawler_warnings.append(fallback_warning)
-            print(f"WARNING: {fallback_warning}", file=sys.stderr)
-            raise RuntimeError(f"{browser_warning}; {fallback_warning}")
-        wantgoo_source = "wantgoo-tinyfish-fallback"
-        wantgoo_warning += "; TinyFish fallback succeeded"
-
-    wantgoo_by_ticker = {item["ticker"]: item for item in wantgoo_items}
-    moneydj_by_ticker = {item["ticker"]: item for item in moneydj_items}
-    new_list = union_tickers(wantgoo_items, moneydj_items)
+    new_list = list(dict.fromkeys(item["ticker"] for item in moneydj_items))
     payload = {
         "generated_at": datetime.now(TAIPEI).isoformat(),
         "as_of_date": today.isoformat(),
-        "wantgoo_filter": "成立年齡 < 0.2",
         "moneydj_filter": f"成立日期 >= {today - timedelta(days=args.lookback_days)}",
-        "combination": "union",
-        "wantgoo_source": wantgoo_source,
-        "wantgoo_warning": wantgoo_warning,
-        "crawler_warnings": crawler_warnings,
-        "wantgoo": list(wantgoo_by_ticker.values()),
-        "moneydj": list(moneydj_by_ticker.values()),
+        "source": "moneydj-only",
+        "crawler_warnings": [],
+        "moneydj": moneydj_items,
         "new_list": new_list,
     }
     write_outputs(Path(args.output_dir), payload)
     print(json.dumps({
         "new_list": new_list,
-        "wantgoo_count": len(wantgoo_items),
         "moneydj_count": len(moneydj_items),
-        "crawler_warnings": crawler_warnings,
+        "crawler_warnings": [],
     }, ensure_ascii=False))
     return 0
 

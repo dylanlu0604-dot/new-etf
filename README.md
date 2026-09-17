@@ -6,20 +6,19 @@
 
 `.github/workflows/weekly-new-etfs.yml` 每週四台北時間 14:00 執行，對應 GitHub Actions 的 UTC cron `0 6 * * 4`。
 
-1. 用瀏覽器讀取 WantGoo「成立年齡」排行，保留 `成立年齡 < 0.2` 的代碼。
-2. 解析 MoneyDJ「新 ETF」排行的 `成立日期`，保留今天往前 14 天內的代碼。
-3. 將兩份代碼標準化（移除 `.TW`、統一大寫）後取聯集，寫入 `artifacts/new_list.txt` 與 `artifacts/new_list.json`。
-4. 將 `new_list` 傳給 `etf_research_update.py`。若聯集為空，只產生空的 CSV 標頭，不會浪費 Claude API 呼叫。
-5. 研究結果以 GitHub Actions artifact 保存 30 天。
+1. 解析 MoneyDJ「新 ETF」排行的 `成立日期`，保留今天往前 14 天內的代碼。
+2. 將代碼標準化（移除 `.TW`、統一大寫）後寫入 `artifacts/new_list.txt` 與 `artifacts/new_list.json`。
+3. 將 `new_list` 傳給 `etf_research_update.py`。若清單為空，只產生空的 CSV 標頭，不會浪費 Claude API 呼叫。
+4. 研究結果以 GitHub Actions artifact 保存 30 天。
 
-WantGoo 的資料是 JavaScript 動態載入且有反爬驗證，因此 collector 使用 Playwright headed Chromium；GitHub runner 透過 Xvfb 提供虛擬顯示器。若 WantGoo 瀏覽器抓取失敗，會在 log 輸出 `WARNING`，再使用 TinyFish Agent fallback。TinyFish 也失敗時，流程會停止，避免產生不完整的聯集。MoneyDJ 若網路、HTML 結構或日期欄位解析失敗，同樣會在 log 輸出 `WARNING` 並停止。WantGoo fallback 的警告也會寫入 `new_list.json` 的 `crawler_warnings`。
+collector 只使用 MoneyDJ 的靜態表格，不再依賴 WantGoo、Playwright 或 TinyFish。若 MoneyDJ 網路請求失敗、頁面沒有可辨識的 ETF 列、代碼無效，或成立日期無法解析，log 會輸出 `WARNING` 並停止，避免產生不完整資料。執行結果會在 `new_list.json` 的 `crawler_warnings` 保留警告欄位。
 
 ## GitHub Secrets
 
 在 repository 的 Settings > Secrets and variables > Actions 新增：
 
 - `ANTHROPIC_API_KEY`：Claude API key。
-- `TINYFISH_API_KEY`：TinyFish CLI key，用於搜尋、全文抓取，以及 WantGoo fallback。
+- `TINYFISH_API_KEY`：TinyFish CLI key，用於 ETF 研究的搜尋與全文抓取。
 
 程式碼不含任何 API key；本機可以放在 `etf-app/.env`，但該檔案已列入 `.gitignore`。
 
@@ -30,8 +29,7 @@ WantGoo 的資料是 JavaScript 動態載入且有反爬驗證，因此 collecto
 ```bash
 cd etf-app
 python3 -m pip install -r requirements.txt
-python3 -m playwright install chromium
-python3 scripts/collect_new_etfs.py --output-dir artifacts --wantgoo-tinyfish-fallback
+python3 scripts/collect_new_etfs.py --output-dir artifacts
 python3 etf_research_update.py "$(tr -d '\r\n' < artifacts/new_list.txt)"
 ```
 
