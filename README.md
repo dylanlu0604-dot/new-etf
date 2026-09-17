@@ -9,7 +9,7 @@
 1. 解析 MoneyDJ「新 ETF」排行的 `成立日期`，保留今天往前 14 天內的代碼。
 2. 將代碼標準化（移除 `.TW`、統一大寫）後寫入 `artifacts/new_list.txt` 與 `artifacts/new_list.json`。
 3. 將 `new_list` 傳給 `etf_research_update.py`。若清單為空，只產生空的 CSV 標頭，不會浪費 Claude API 呼叫。
-4. 研究結果以 GitHub Actions artifact 保存 30 天。
+4. 研究結果寫入 repository 的 `artifacts/` 固定目錄，並另外以 GitHub Actions artifact 保存 30 天。
 
 collector 只使用 MoneyDJ 的靜態表格，不再依賴 WantGoo、Playwright 或 TinyFish。若 MoneyDJ 網路請求失敗、頁面沒有可辨識的 ETF 列、代碼無效，或成立日期無法解析，log 會輸出 `WARNING` 並停止，避免產生不完整資料。執行結果會在 `new_list.json` 的 `crawler_warnings` 保留警告欄位。
 

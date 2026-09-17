@@ -9,3 +9,9 @@ etf_output.xlsx
 *.csv
 *.xlsx
 *.log
+
+# Keep the scheduled ETF results in the repository.
+!artifacts/
+!artifacts/new_list.json
+!artifacts/new_list.txt
+!artifacts/etf_research.csv

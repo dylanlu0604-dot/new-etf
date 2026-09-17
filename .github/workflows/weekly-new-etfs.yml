@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   collect-and-research:
@@ -74,3 +74,15 @@ jobs:
           path: artifacts/
           if-no-files-found: error
           retention-days: 30
+
+      - name: Commit latest results to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/new_list.json artifacts/new_list.txt artifacts/etf_research.csv
+          if git diff --cached --quiet; then
+            echo "No result changes to commit."
+          else
+            git commit -m "Update ETF research results"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
