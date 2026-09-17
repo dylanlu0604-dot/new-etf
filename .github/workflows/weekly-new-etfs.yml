@@ -36,7 +36,7 @@ jobs:
       - name: Install TinyFish CLI
         run: npm install --global @tiny-fish/cli
 
-      - name: Collect WantGoo and MoneyDJ intersection
+      - name: Collect WantGoo and MoneyDJ union
         env:
           TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
         run: |
@@ -44,8 +44,7 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1440x1200x24" \
             python scripts/collect_new_etfs.py \
               --output-dir artifacts \
-              --wantgoo-tinyfish-fallback \
-              --wantgoo-derived-fallback
+              --wantgoo-tinyfish-fallback
 
       - name: Run ETF research for new_list
         env:

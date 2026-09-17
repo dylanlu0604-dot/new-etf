@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Collect newly established Taiwan ETFs from WantGoo and MoneyDJ.
 
-The two source lists are intentionally filtered independently and then
-intersected by normalized ticker. WantGoo is rendered in a browser because
-its ranking data is loaded by JavaScript and its API is protected by a client
-signature. MoneyDJ exposes the establishment date in static table HTML.
+The two source lists are filtered independently and then unioned by normalized
+ticker. WantGoo is rendered in a browser because its ranking data is loaded by
+JavaScript and its API is protected by a client signature. MoneyDJ exposes the
+establishment date in static table HTML.
 """
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ def fetch_text(url: str, timeout: int = 60) -> str:
         # certificate used by this source. GitHub's Ubuntu runner uses the
         # verified path above; this fallback keeps local diagnostics usable.
         if isinstance(exc, OSError) and "CERTIFICATE_VERIFY_FAILED" in str(exc):
-            print(f"TLS verification warning for {url}: {exc}", file=sys.stderr)
+            print(f"WARNING: TLS verification fallback for {url}: {exc}", file=sys.stderr)
             with urlopen(request, timeout=timeout, context=ssl._create_unverified_context()) as response:
                 return response.read().decode("utf-8", errors="replace")
         raise
@@ -108,16 +108,22 @@ def collect_moneydj(today: date, lookback_days: int) -> list[dict[str, Any]]:
     html = fetch_text(MONEYDJ_URL)
     parser = MoneyDJRowParser()
     parser.feed(html)
+    if not parser.rows:
+        raise RuntimeError("MoneyDJ page returned no recognizable ETF rows")
     start_date = today - timedelta(days=lookback_days)
     items: list[dict[str, Any]] = []
+    candidate_rows = 0
+    parsed_date_rows = 0
     for row in parser.rows:
         ticker = normalize_ticker(row.get("col01", ""))
         if not TICKER_RE.fullmatch(ticker):
             continue
+        candidate_rows += 1
         try:
             established = datetime.strptime(row["col05"], "%Y/%m/%d").date()
         except ValueError:
             continue
+        parsed_date_rows += 1
         if start_date <= established <= today:
             items.append(
                 {
@@ -126,6 +132,10 @@ def collect_moneydj(today: date, lookback_days: int) -> list[dict[str, Any]]:
                     "established_date": established.isoformat(),
                 }
             )
+    if not candidate_rows:
+        raise RuntimeError("MoneyDJ page contained no valid ETF tickers")
+    if not parsed_date_rows:
+        raise RuntimeError("MoneyDJ page contained no parseable establishment dates")
     return items
 
 
@@ -173,6 +183,12 @@ def collect_wantgoo_with_tinyfish() -> list[dict[str, Any]]:
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise RuntimeError(f"TinyFish WantGoo fallback failed: {exc}") from exc
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().splitlines()
+        message = detail[-1] if detail else "no diagnostic output"
+        raise RuntimeError(
+            f"TinyFish WantGoo fallback exited with code {result.returncode}: {message}"
+        )
     payload = extract_tinyfish_result(result.stdout)
     raw_items = payload.get("items", []) if isinstance(payload, dict) else payload
     if not isinstance(raw_items, list):
@@ -252,92 +268,85 @@ def write_outputs(output_dir: Path, payload: dict[str, Any]) -> None:
     )
 
 
-def derive_wantgoo_age_items(moneydj_items: list[dict[str, Any]], today: date) -> list[dict[str, Any]]:
-    """Derive the WantGoo age condition when Cloudflare blocks its browser.
-
-    Every MoneyDJ item selected by the 14-day condition is necessarily younger
-    than 0.2 years (about 73 days), so this preserves the requested set
-    intersection while keeping the fallback explicit in the output metadata.
-    """
-    items: list[dict[str, Any]] = []
-    for item in moneydj_items:
-        established = date.fromisoformat(item["established_date"])
-        age = (today - established).days / 365.25
-        if age < 0.2:
-            items.append({"ticker": item["ticker"], "age": round(age, 4), "name": item.get("name", "")})
-    return items
+def union_tickers(*collections: list[dict[str, Any]]) -> list[str]:
+    """Return tickers in source order, preserving the first occurrence."""
+    result: list[str] = []
+    seen: set[str] = set()
+    for collection in collections:
+        for item in collection:
+            ticker = normalize_ticker(item.get("ticker", ""))
+            if ticker and ticker not in seen:
+                seen.add(ticker)
+                result.append(ticker)
+    return result
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="找出兩個 ETF 網站的新成立 ETF 交集")
+    parser = argparse.ArgumentParser(description="找出兩個 ETF 網站的新成立 ETF 聯集")
     parser.add_argument("--output-dir", default="artifacts")
     parser.add_argument("--lookback-days", type=int, default=14)
     parser.add_argument("--today", help="測試用 YYYY-MM-DD；未提供時使用台北日期")
     parser.add_argument("--wantgoo-tinyfish-fallback", action="store_true")
-    parser.add_argument(
-        "--wantgoo-derived-fallback",
-        action="store_true",
-        help="WantGoo 被 Cloudflare 擋住時，以 MoneyDJ 14 天日期推導成立年齡條件",
-    )
     args = parser.parse_args()
 
     today = date.fromisoformat(args.today) if args.today else datetime.now(TAIPEI).date()
-    moneydj_items = collect_moneydj(today, args.lookback_days)
+    crawler_warnings: list[str] = []
+    try:
+        moneydj_items = collect_moneydj(today, args.lookback_days)
+    except Exception as exc:
+        warning = f"MoneyDJ crawler failed: {exc}"
+        print(f"WARNING: {warning}", file=sys.stderr)
+        raise RuntimeError(warning) from exc
+
     wantgoo_warning = ""
     wantgoo_source = "wantgoo-browser"
-    if not moneydj_items:
-        # The requested result is an intersection. When MoneyDJ contributes no
-        # rows, no WantGoo row can belong to new_list, so avoid an unnecessary
-        # browser/TinyFish request and still produce a valid empty artifact.
-        wantgoo_items = []
-        wantgoo_source = "not-needed-empty-moneydj-filter"
-        wantgoo_warning = (
-            "MoneyDJ returned no ETFs within the lookback window; "
-            "the intersection is necessarily empty"
-        )
-    else:
+    try:
+        wantgoo_items = collect_wantgoo()
+    except RuntimeError as exc:
+        browser_warning = f"WantGoo browser crawler failed: {exc}"
+        wantgoo_warning = browser_warning
+        crawler_warnings.append(browser_warning)
+        print(f"WARNING: {browser_warning}", file=sys.stderr)
+        if not args.wantgoo_tinyfish_fallback:
+            raise RuntimeError(browser_warning) from exc
         try:
-            wantgoo_items = collect_wantgoo()
-        except RuntimeError as exc:
-            wantgoo_warning = str(exc)
-            if not args.wantgoo_tinyfish_fallback:
-                raise
-            print(f"WantGoo browser warning: {exc}; using TinyFish agent fallback", file=sys.stderr)
             wantgoo_items = collect_wantgoo_with_tinyfish()
-            if not wantgoo_items:
-                wantgoo_warning += "; TinyFish returned no rows"
-
-    if not wantgoo_items and args.wantgoo_derived_fallback and moneydj_items:
-        print(
-            "WantGoo did not return rows; deriving its <0.2 age set from "
-            "MoneyDJ's already-selected 14-day set.",
-            file=sys.stderr,
-        )
-        wantgoo_items = derive_wantgoo_age_items(moneydj_items, today)
-        wantgoo_source = "derived-from-moneydj-14-day-filter"
-    elif (
-        not wantgoo_items
-        and wantgoo_warning
-        and wantgoo_source != "not-needed-empty-moneydj-filter"
-    ):
-        raise RuntimeError(f"WantGoo extraction failed: {wantgoo_warning}")
+        except Exception as fallback_exc:
+            fallback_warning = f"WantGoo TinyFish fallback failed: {fallback_exc}"
+            crawler_warnings.append(fallback_warning)
+            print(f"WARNING: {fallback_warning}", file=sys.stderr)
+            raise RuntimeError(f"{browser_warning}; {fallback_warning}") from fallback_exc
+        if not wantgoo_items:
+            fallback_warning = "WantGoo TinyFish fallback returned no valid rows"
+            crawler_warnings.append(fallback_warning)
+            print(f"WARNING: {fallback_warning}", file=sys.stderr)
+            raise RuntimeError(f"{browser_warning}; {fallback_warning}")
+        wantgoo_source = "wantgoo-tinyfish-fallback"
+        wantgoo_warning += "; TinyFish fallback succeeded"
 
     wantgoo_by_ticker = {item["ticker"]: item for item in wantgoo_items}
     moneydj_by_ticker = {item["ticker"]: item for item in moneydj_items}
-    new_list = [ticker for ticker in wantgoo_by_ticker if ticker in moneydj_by_ticker]
+    new_list = union_tickers(wantgoo_items, moneydj_items)
     payload = {
         "generated_at": datetime.now(TAIPEI).isoformat(),
         "as_of_date": today.isoformat(),
         "wantgoo_filter": "成立年齡 < 0.2",
         "moneydj_filter": f"成立日期 >= {today - timedelta(days=args.lookback_days)}",
+        "combination": "union",
         "wantgoo_source": wantgoo_source,
         "wantgoo_warning": wantgoo_warning,
+        "crawler_warnings": crawler_warnings,
         "wantgoo": list(wantgoo_by_ticker.values()),
         "moneydj": list(moneydj_by_ticker.values()),
         "new_list": new_list,
     }
     write_outputs(Path(args.output_dir), payload)
-    print(json.dumps({"new_list": new_list, "wantgoo_count": len(wantgoo_items), "moneydj_count": len(moneydj_items)}, ensure_ascii=False))
+    print(json.dumps({
+        "new_list": new_list,
+        "wantgoo_count": len(wantgoo_items),
+        "moneydj_count": len(moneydj_items),
+        "crawler_warnings": crawler_warnings,
+    }, ensure_ascii=False))
     return 0
 
 

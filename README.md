@@ -8,11 +8,11 @@
 
 1. 用瀏覽器讀取 WantGoo「成立年齡」排行，保留 `成立年齡 < 0.2` 的代碼。
 2. 解析 MoneyDJ「新 ETF」排行的 `成立日期`，保留今天往前 14 天內的代碼。
-3. 將兩份代碼標準化（移除 `.TW`、統一大寫）後取交集，寫入 `artifacts/new_list.txt` 與 `artifacts/new_list.json`。
-4. 將 `new_list` 傳給 `etf_research_update.py`。若交集為空，只產生空的 CSV 標頭，不會浪費 Claude API 呼叫。
+3. 將兩份代碼標準化（移除 `.TW`、統一大寫）後取聯集，寫入 `artifacts/new_list.txt` 與 `artifacts/new_list.json`。
+4. 將 `new_list` 傳給 `etf_research_update.py`。若聯集為空，只產生空的 CSV 標頭，不會浪費 Claude API 呼叫。
 5. 研究結果以 GitHub Actions artifact 保存 30 天。
 
-WantGoo 的資料是 JavaScript 動態載入且有反爬驗證，因此 collector 使用 Playwright headed Chromium；GitHub runner 透過 Xvfb 提供虛擬顯示器。若瀏覽器抓取失敗，會先使用 TinyFish Agent fallback，仍然直接讀取 WantGoo 表格。若 WantGoo 與 TinyFish 都被 Cloudflare 擋住，才會以 MoneyDJ 已選出的「成立日期近 14 天」集合推導 WantGoo 的 `<0.2` 年齡條件；這個 fallback 會在 `new_list.json` 的 `wantgoo_source` 與 `wantgoo_warning` 明確標示，不會把失敗靜默當成空集合。
+WantGoo 的資料是 JavaScript 動態載入且有反爬驗證，因此 collector 使用 Playwright headed Chromium；GitHub runner 透過 Xvfb 提供虛擬顯示器。若 WantGoo 瀏覽器抓取失敗，會在 log 輸出 `WARNING`，再使用 TinyFish Agent fallback。TinyFish 也失敗時，流程會停止，避免產生不完整的聯集。MoneyDJ 若網路、HTML 結構或日期欄位解析失敗，同樣會在 log 輸出 `WARNING` 並停止。WantGoo fallback 的警告也會寫入 `new_list.json` 的 `crawler_warnings`。
 
 ## GitHub Secrets
 
