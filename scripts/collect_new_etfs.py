@@ -136,9 +136,9 @@ def write_outputs(output_dir: Path, payload: dict[str, Any]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="找出 MoneyDJ 近40天成立的新 ETF")
+    parser = argparse.ArgumentParser(description="找出 MoneyDJ 近100天成立的新 ETF")
     parser.add_argument("--output-dir", default="artifacts")
-    parser.add_argument("--lookback-days", type=int, default=40)
+    parser.add_argument("--lookback-days", type=int, default=100)
     parser.add_argument("--today", help="測試用 YYYY-MM-DD；未提供時使用台北日期")
     args = parser.parse_args()
 
