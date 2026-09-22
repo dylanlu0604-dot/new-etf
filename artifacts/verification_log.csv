@@ -1,0 +1,361 @@
+﻿ticker,moneydj_url,official_url,moneydj_status,official_status,risk_rank,risk_method,risk_evidence
+00400A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00400A.TW,https://www.cathaysite.com.tw/ETF/detail/EEA,ok,ok,RR4,equity_broad_rule,
+00401A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00401A.TW,https://am.jpmorgan.com/tw/zh/asset-management/twetf/products/jpmorgan-taiwan-taiwan-equity-high-income-active-etf-TW00000401A1,ok,ok,RR4,equity_broad_rule,
+00402A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00402A.TW,https://etf.allianzgi.com.tw/etf-info/E0003,ok,ok,RR4,explicit_override,
+00403A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00403A.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=63YTW,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00404A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00404A.TW,https://www.abfunds.com.tw/zh-tw/funds/etf/active/equities/abitl-taiwan-momentum-equity-premium-income-50-active-etf.-.TW00000404A5.html,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR1
+00405A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00405A.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00405A,ok,ok,RR4,official_nearest_ticker,RR4
+00406A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00406A.TW,https://www.ctbcinvestments.com.tw/Etf/00682450/Info,ok,ok,RR4,equity_broad_rule,
+00407A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00407A.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J024,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4
+00408A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00408A.TW,https://www.fsitc.com.tw/FundDetail.aspx?ID=183#TabLinkdivEditTab9,ok,ok,RR4,explicit_override,RR1; RR5; RR1; RR5; RR4
+00409A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00409A.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF26,ok,ok,RR4,explicit_override,RR4; RR4; RR4; RR4; RR4
+00410A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00410A.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=E5,ok,ok,RR5,explicit_override,RR5; RR1; RR5; RR4; RR1
+00411A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00411A.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=64YTW,ok,ok,RR4,explicit_override,RR4; RR4; RR4; RR4; RR4
+00412A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00412A.TW,https://etf.allianzgi.com.tw/etf-info/E0004?tab=1,ok,ok,RR5,equity_concentration_rule,
+0050,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0050.TW,https://www.yuantaetfs.com/product/detail/0050/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+0051,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0051.TW,https://www.yuantaetfs.com/product/detail/0051/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+0052,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0052.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=0052,ok,ok,RR5,official_nearest_ticker,RR5
+0053,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0053.TW,https://www.yuantaetfs.com/product/detail/0053/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+0055,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0055.TW,https://www.yuantaetfs.com/product/detail/0055/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+0056,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0056.TW,https://www.yuantaetfs.com/product/detail/0056/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+0057,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0057.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=0057,ok,ok,RR4,official_nearest_ticker,RR4
+0061,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=0061.TW,https://www.yuantaetfs.com/product/detail/0061/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+006201,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006201.TW,https://www.yuantaetfs.com/product/detail/006201/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+006203,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006203.TW,https://www.yuantaetfs.com/product/detail/006203/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+006204,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006204.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=37,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+006205,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006205.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=006205,ok,ok,RR5,official_nearest_ticker,RR5
+006206,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006206.TW,https://www.yuantaetfs.com/product/detail/006206/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+006207,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006207.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF01,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5
+006208,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=006208.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=006208,ok,ok,RR4,official_nearest_ticker,RR4
+00625K,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00625K.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=006205,ok,ok,RR5,official_direct,RR5
+00631L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00631L.TW,https://www.yuantaetfs.com/product/detail/00631L/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00632R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00632R.TW,https://www.yuantaetfs.com/product/detail/00632R/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00633L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00633L.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00633L,ok,ok,RR5,official_nearest_ticker,RR5
+00634R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00634R.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00634R,ok,ok,RR5,official_nearest_ticker,RR5
+00635U,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00635U.TW,https://www.yuantaetfs.com/product/detail/00635U/Basic_information,ok,ok,RR5,commodity_risk_rule,
+00636,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00636.TW,https://www.cathaysite.com.tw/ETF/detail/E66,ok,ok,RR4,equity_broad_rule,
+00636K,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00636K.TW,https://www.cathaysite.com.tw/ETF/detail/E66,ok,ok,RR4,equity_broad_rule,
+00637L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00637L.TW,https://www.yuantaetfs.com/product/detail/00637L/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00638R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00638R.TW,https://www.yuantaetfs.com/product/detail/00638R/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00639,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00639.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00639,ok,ok,RR5,official_nearest_ticker,RR5
+00640L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00640L.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00640L,ok,ok,RR5,official_nearest_ticker,RR5
+00641R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00641R.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00641R,ok,ok,RR5,official_nearest_ticker,RR5
+00642U,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00642U.TW,https://www.yuantaetfs.com/product/detail/00642U/Basic_information,ok,ok,RR5,commodity_risk_rule,
+00643,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00643.TW,https://www.capitalfund.com.tw/etf/product/detail/069,ok,ok,RR4,equity_broad_rule,
+00643K,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00643K.TW,https://www.capitalfund.com.tw/etf/product/detail/069,ok,ok,RR4,equity_broad_rule,
+00645,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00645.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00645,ok,ok,RR5,official_nearest_ticker,RR5
+00646,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00646.TW,https://www.yuantaetfs.com/product/detail/00646/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00647L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00647L.TW,https://www.yuantaetfs.com/product/detail/00647L/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00648R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00648R.TW,https://www.yuantaetfs.com/product/detail/00648R/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00650L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00650L.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF03,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00651R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00651R.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF04,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00652,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00652.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00652,ok,ok,RR5,official_nearest_ticker,RR5
+00653L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00653L.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00653L,ok,ok,RR5,official_nearest_ticker,RR5
+00654R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00654R.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00654R,ok,ok,RR5,official_nearest_ticker,RR5
+00655L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00655L.TW,https://www.cathaysite.com.tw/ETF/detail/E82,ok,ok,RR5,strategy_rule,
+00656R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00656R.TW,https://www.cathaysite.com.tw/ETF/detail/E83,ok,ok,RR5,strategy_rule,
+00657,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00657.TW,https://www.cathaysite.com.tw/ETF/detail/E84,ok,ok,RR4,equity_broad_rule,
+00657K,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00657K.TW,https://www.cathaysite.com.tw/ETF/detail/E84,ok,ok,RR4,equity_broad_rule,
+00660,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00660.TW,https://www.yuantaetfs.com/product/detail/00660/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00661,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00661.TW,https://www.yuantaetfs.com/product/detail/00661/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00662,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00662.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00662,ok,ok,RR4,official_nearest_ticker,RR4; RR4
+00663L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00663L.TW,https://www.cathaysite.com.tw/ETF/detail/E87,ok,ok,RR5,strategy_rule,
+00664R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00664R.TW,https://www.cathaysite.com.tw/ETF/detail/E88,ok,ok,RR5,strategy_rule,
+00665L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00665L.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00665L,ok,ok,RR5,official_nearest_ticker,RR5
+00666R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00666R.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00666R,ok,ok,RR5,official_nearest_ticker,RR5
+00668,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00668.TW,https://www.cathaysite.com.tw/ETF/detail/E93,ok,ok,RR4,equity_broad_rule,
+00668K,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00668K.TW,https://www.cathaysite.com.tw/ETF/detail/E93,ok,ok,RR4,equity_broad_rule,
+00669R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00669R.TW,https://www.cathaysite.com.tw/ETF/detail/E94,ok,ok,RR5,strategy_rule,
+00670L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00670L.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00670L,ok,ok,RR5,official_nearest_ticker,RR5
+00671R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00671R.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00671R,ok,ok,RR5,official_nearest_ticker,RR5
+00673R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00673R.TW,https://www.yuantaetfs.com/product/detail/00673R/Basic_information,ok,ok,RR5,strategy_rule,
+00674R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00674R.TW,https://www.yuantaetfs.com/product/detail/00674R/Basic_information,ok,ok,RR5,strategy_rule,
+00675L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00675L.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00675L,ok,ok,RR5,official_nearest_ticker,RR5
+00676R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00676R.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00676R,ok,ok,RR5,official_nearest_ticker,RR5
+00678,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00678.TW,https://www.capitalfund.com.tw/etf/product/detail/093,ok,ok,RR5,equity_concentration_rule,
+00679B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00679B.TW,https://www.yuantaetfs.com/product/detail/00679B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00680L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00680L.TW,https://www.yuantaetfs.com/product/detail/00680L/Basic_information,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+00681R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00681R.TW,https://www.yuantaetfs.com/product/detail/00681R/Basic_information,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+00682U,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00682U.TW,https://www.yuantaetfs.com/product/detail/00682U/Basic_information,ok,ok,RR5,currency_risk_rule,
+00683L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00683L.TW,https://www.yuantaetfs.com/product/detail/00683L/Basic_information,ok,ok,RR5,strategy_rule,
+00684R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00684R.TW,https://www.yuantaetfs.com/product/detail/00684R/Basic_information,ok,ok,RR5,strategy_rule,
+00685L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00685L.TW,https://www.capitalfund.com.tw/etf/product/detail/094,ok,ok,RR5,strategy_rule,
+00686R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00686R.TW,https://www.capitalfund.com.tw/etf/product/detail/095,ok,ok,RR5,strategy_rule,
+00687B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00687B.TW,https://www.cathaysite.com.tw/ETF/detail/EA8,ok,ok,RR2,bond_risk_rule,
+00687C,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00687C.TW,https://www.cathaysite.com.tw/ETF/detail/EA8,ok,ok,RR2,bond_risk_rule,
+00688L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00688L.TW,https://www.cathaysite.com.tw/ETF/detail/EA9,ok,ok,RR5,strategy_rule,
+00689R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00689R.TW,https://www.cathaysite.com.tw/ETF/detail/EAA,ok,ok,RR5,strategy_rule,
+00690,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00690.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=5,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00692,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00692.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00692,ok,ok,RR4,official_nearest_ticker,RR4
+00693U,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00693U.TW,https://www.jkoam.com/etf/etf-info/34?tab=1,ok,ok,RR5,commodity_risk_rule,
+00694B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00694B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00694B,ok,ok,RR2,official_nearest_ticker,RR2
+00695B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00695B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00695B,ok,ok,RR2,official_nearest_ticker,RR2
+00696B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00696B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00696B,ok,ok,RR2,official_nearest_ticker,RR2
+00697B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00697B.TW,https://www.yuantaetfs.com/product/detail/00697B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00700,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00700.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00700,ok,ok,RR5,official_nearest_ticker,RR5
+00701,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00701.TW,https://www.cathaysite.com.tw/ETF/detail/EAD,ok,ok,RR4,equity_broad_rule,
+00702,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00702.TW,https://www.cathaysite.com.tw/ETF/detail/EAE,ok,ok,RR4,equity_broad_rule,
+00703,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00703.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00703,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00706L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00706L.TW,https://www.yuantaetfs.com/product/detail/00706L/Basic_information,ok,ok,RR5,strategy_rule,
+00707R,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00707R.TW,https://www.yuantaetfs.com/product/detail/00707R/Basic_information,ok,ok,RR5,strategy_rule,
+00708L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00708L.TW,https://www.yuantaetfs.com/product/detail/00708L/Basic_information,ok,ok,RR5,strategy_rule,
+00709,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00709.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00709,ok,ok,RR4,official_nearest_ticker,RR4
+00710B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00710B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF05,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00711B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00711B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF06,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00712,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00712.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF07,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5
+00713,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00713.TW,https://www.yuantaetfs.com/product/detail/00713/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00714,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00714.TW,https://www.capitalfund.com.tw/etf/product/detail/102,ok,ok,RR4,equity_broad_rule,
+00715L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00715L.TW,https://www.jkoam.com/etf/etf-info/39?tab=1,ok,ok,RR5,strategy_rule,
+00717,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00717.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00717,ok,ok,RR4,official_nearest_ticker,RR4
+00719B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00719B.TW,https://www.yuantaetfs.com/product/detail/00719B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00720B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00720B.TW,https://www.yuantaetfs.com/product/detail/00720B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00722B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00722B.TW,https://www.capitalfund.com.tw/etf/product/detail/103,ok,ok,RR2,bond_risk_rule,
+00723B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00723B.TW,https://www.capitalfund.com.tw/etf/product/detail/104,ok,ok,RR2,bond_risk_rule,
+00724B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00724B.TW,https://www.capitalfund.com.tw/etf/product/detail/105,ok,ok,RR2,bond_risk_rule,
+00725B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00725B.TW,https://www.cathaysite.com.tw/ETF/detail/EAJ,ok,ok,RR2,bond_risk_rule,
+00726B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00726B.TW,https://www.cathaysite.com.tw/ETF/detail/EAK,ok,ok,RR2,bond_risk_rule,
+00727B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00727B.TW,https://www.cathaysite.com.tw/ETF/detail/EAL,ok,ok,RR3,bond_risk_rule,
+00728,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00728.TW,https://www.fsitc.com.tw/FundDetail.aspx?ID=D90#TabLinkdivEditTab1,ok,ok,RR4,explicit_override,RR1; RR5; RR4; RR4
+00730,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00730.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00730,ok,ok,RR4,official_nearest_ticker,RR4
+00731,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00731.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF08,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00733,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00733.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00733,ok,ok,RR5,official_nearest_ticker,RR5
+00734B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00734B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00734B,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+00735,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00735.TW,https://www.cathaysite.com.tw/ETF/detail/EAW,ok,ok,RR5,equity_concentration_rule,
+00736,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00736.TW,https://www.cathaysite.com.tw/ETF/detail/EAU,ok,ok,RR4,equity_broad_rule,
+00737,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00737.TW,https://www.cathaysite.com.tw/ETF/detail/EAV,ok,ok,RR5,equity_concentration_rule,
+00738U,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00738U.TW,https://www.yuantaetfs.com/product/detail/00738U/Basic_information,ok,ok,RR5,commodity_risk_rule,
+00739,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00739.TW,https://www.yuantaetfs.com/product/detail/00739/Basic_information,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00740B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00740B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00740B,ok,ok,RR2,official_nearest_ticker,RR2
+00741B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00741B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00741B,ok,ok,RR3,official_nearest_ticker,RR3
+00746B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00746B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00746B,ok,ok,RR2,official_nearest_ticker,RR2
+00749B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00749B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J002,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00750B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00750B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J003,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00751B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00751B.TW,https://www.yuantaetfs.com/product/detail/00751B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00752,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00752.TW,https://www.ctbcinvestments.com.tw/Etf/73680588/Info,ok,ok,RR4,equity_broad_rule,
+00753L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00753L.TW,https://www.ctbcinvestments.com.tw/Etf/73680567/Info,ok,ok,RR5,strategy_rule,
+00754B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00754B.TW,https://www.capitalfund.com.tw/etf/product/detail/171,ok,ok,RR2,bond_risk_rule,
+00755B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00755B.TW,https://www.capitalfund.com.tw/etf/product/detail/172,ok,ok,RR2,bond_risk_rule,
+00756B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00756B.TW,https://www.capitalfund.com.tw/etf/product/detail/173,ok,ok,RR2,bond_risk_rule,
+00757,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00757.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=36YTW,ok,ok,RR5,official_nearest_ticker,RR5; RR5
+00758B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00758B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF10,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00759B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00759B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF11,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00760B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00760B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF12,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00761B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00761B.TW,https://www.cathaysite.com.tw/ETF/detail/EBE,ok,ok,RR2,bond_risk_rule,
+00762B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00762B.TW,,error,error,n.a.,equity_broad_rule,
+00763U,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00763U.TW,https://www.jkoam.com/etf/etf-info/51?tab=1,ok,ok,RR5,commodity_risk_rule,
+00764B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00764B.TW,https://www.capitalfund.com.tw/etf/product/detail/175,ok,ok,RR2,bond_risk_rule,
+00768B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00768B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF14,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00770,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00770.TW,https://www.cathaysite.com.tw/ETF/detail/EBH,ok,ok,RR5,equity_concentration_rule,
+00771,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00771.TW,https://www.yuantaetfs.com/product/detail/00771/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00772B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00772B.TW,https://www.ctbcinvestments.com.tw/Etf/74707446/Info,ok,ok,RR2,bond_risk_rule,
+00773B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00773B.TW,https://www.ctbcinvestments.com.tw/Etf/74707494/Info,ok,ok,RR2,bond_risk_rule,
+00775B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00775B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00775B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00777B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00777B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J004,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00778B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00778B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J005,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00779B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00779B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J006,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00780B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00780B.TW,https://www.cathaysite.com.tw/ETF/detail/EBI,ok,ok,RR2,bond_risk_rule,
+00781B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00781B.TW,https://www.cathaysite.com.tw/ETF/detail/EBJ,ok,ok,RR2,bond_risk_rule,
+00782B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00782B.TW,https://www.cathaysite.com.tw/ETF/detail/EBK,ok,ok,RR2,bond_risk_rule,
+00783,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00783.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00783,ok,ok,RR5,official_nearest_ticker,RR5
+00785B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00785B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00785B,ok,ok,RR2,official_nearest_ticker,RR2
+00786B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00786B.TW,https://www.yuantaetfs.com/product/detail/00786B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00787B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00787B.TW,https://www.yuantaetfs.com/product/detail/00787B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00788B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00788B.TW,https://www.yuantaetfs.com/product/detail/00788B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00789B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00789B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF16,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00791B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00791B.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF18,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00792B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00792B.TW,https://www.capitalfund.com.tw/etf/product/detail/189,ok,ok,RR2,bond_risk_rule,
+00793B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00793B.TW,https://www.capitalfund.com.tw/etf/product/detail/190,ok,ok,RR2,bond_risk_rule,
+00795B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00795B.TW,https://www.ctbcinvestments.com.tw/Etf/75959067/Info,ok,ok,RR2,bond_risk_rule,
+00799B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00799B.TW,https://www.cathaysite.com.tw/ETF/detail/EBQ,ok,ok,RR2,bond_risk_rule,
+00830,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00830.TW,https://www.cathaysite.com.tw/ETF/detail/EBO,ok,ok,RR5,equity_concentration_rule,
+00834B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00834B.TW,https://www.fsitc.com.tw/FundDetail.aspx?ID=101#TabLinkdivEditTab9,ok,ok,RR2,explicit_override,RR1; RR5; RR2; RR2
+00836B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00836B.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=72,ok,ok,RR2,bond_risk_rule,RR1; RR2; RR3; RR4; RR5
+00840B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00840B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J007,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00841B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00841B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J009,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00842B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00842B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00842B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00844B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00844B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00844B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00845B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00845B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00845B,ok,ok,RR3,official_nearest_ticker,RR3
+00846B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00846B.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00846B,ok,ok,RR2,official_nearest_ticker,RR2
+00847B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00847B.TW,https://www.ctbcinvestments.com.tw/Etf/76317984/Info,ok,ok,RR2,bond_risk_rule,
+00848B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00848B.TW,https://www.ctbcinvestments.com.tw/Etf/76318219/Info,ok,ok,RR3,bond_risk_rule,
+00849B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00849B.TW,https://www.ctbcinvestments.com.tw/Etf/76317990/Info,ok,ok,RR2,bond_risk_rule,
+00850,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00850.TW,https://www.yuantaetfs.com/product/detail/00850/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00851,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00851.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00851,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00852L,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00852L.TW,https://www.cathaysite.com.tw/ETF/detail/EC2,ok,ok,RR5,strategy_rule,
+00853B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00853B.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=37YTW,ok,ok,RR2,official_nearest_ticker,RR2; RR2
+00856B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00856B.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=75,ok,ok,RR2,bond_risk_rule,RR1; RR2; RR3; RR4; RR5
+00857B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00857B.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=76,ok,ok,RR2,bond_risk_rule,RR1; RR2; RR3; RR4; RR5
+00858,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00858.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=77,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00859B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00859B.TW,https://www.capitalfund.com.tw/etf/product/detail/192,ok,ok,RR2,bond_risk_rule,
+00860B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00860B.TW,https://www.capitalfund.com.tw/etf/product/detail/193,ok,ok,RR2,bond_risk_rule,
+00861,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00861.TW,https://www.yuantaetfs.com/product/detail/00861/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00862B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00862B.TW,https://www.ctbcinvestments.com.tw/Etf/76348749/Info,ok,ok,RR2,bond_risk_rule,
+00863B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00863B.TW,https://www.ctbcinvestments.com.tw/Etf/76348733/Info,ok,ok,RR2,bond_risk_rule,
+00864B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00864B.TW,https://www.ctbcinvestments.com.tw/Etf/76348728/Info,ok,ok,RR2,bond_risk_rule,
+00865B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00865B.TW,https://www.cathaysite.com.tw/ETF/detail/ECB,ok,ok,RR2,bond_risk_rule,
+00867B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00867B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00867B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00870B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00870B.TW,https://www.yuantaetfs.com/product/detail/00870B/Basic_information,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+00875,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00875.TW,https://www.cathaysite.com.tw/ETF/detail/ECC,ok,ok,RR5,equity_concentration_rule,
+00876,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00876.TW,https://www.yuantaetfs.com/product/detail/00876/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00877,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00877.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF19,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5
+00878,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00878.TW,https://www.cathaysite.com.tw/ETF/detail/ECN,ok,ok,RR4,equity_broad_rule,
+00881,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00881.TW,https://www.cathaysite.com.tw/ETF/detail/ECR,ok,ok,RR5,equity_concentration_rule,
+00882,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00882.TW,https://www.ctbcinvestments.com.tw/Etf/88134187/Info,ok,ok,RR4,equity_broad_rule,
+00884B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00884B.TW,https://www.ctbcinvestments.com.tw/Etf/88134166/Info,ok,ok,RR2,bond_risk_rule,
+00885,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00885.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00885,ok,ok,RR5,official_nearest_ticker,RR5
+00886,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00886.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=81,ok,ok,RR5,equity_concentration_rule,RR1; RR2; RR3; RR4; RR5
+00887,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00887.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=82,ok,ok,RR5,equity_concentration_rule,RR1; RR2; RR3; RR4; RR5
+00888,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00888.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=83,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00890B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00890B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J014,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00891,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00891.TW,https://www.ctbcinvestments.com.tw/Etf/88182265/Info,ok,ok,RR5,equity_concentration_rule,
+00892,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00892.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00892,ok,ok,RR5,official_nearest_ticker,RR5
+00893,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00893.TW,https://www.cathaysite.com.tw/ETF/detail/ECW,ok,ok,RR5,equity_concentration_rule,
+00894,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00894.TW,https://www.ctbcinvestments.com.tw/Etf/88195183/Info,ok,ok,RR4,equity_broad_rule,
+00895,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00895.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00895,ok,ok,RR4,official_nearest_ticker,RR4
+00896,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00896.TW,https://www.ctbcinvestments.com.tw/Etf/88231049/Info,ok,ok,RR5,equity_concentration_rule,
+00897,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00897.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00897,ok,ok,RR4,official_nearest_ticker,RR4
+00898,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00898.TW,https://www.cathaysite.com.tw/ETF/detail/ED6,ok,ok,RR4,equity_broad_rule,
+00899,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00899.TW,https://www.ftft.com.tw/etf/product/details/?id=130,ok,ok,RR4,equity_broad_rule,
+00900,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00900.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00900,ok,ok,RR4,official_nearest_ticker,RR4
+00901,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00901.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=87,ok,ok,RR5,equity_concentration_rule,RR1; RR2; RR3; RR4; RR5
+00902,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00902.TW,https://www.ctbcinvestments.com.tw/Etf/88261134/Info,ok,ok,RR5,equity_concentration_rule,
+00903,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00903.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00903,ok,ok,RR4,official_nearest_ticker,RR4
+00904,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00904.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00904,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00905,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00905.TW,https://www.ftft.com.tw/etf/product/details/?id=131,ok,ok,RR4,equity_broad_rule,
+00907,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00907.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=88,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00908,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00908.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00908,ok,ok,RR4,official_nearest_ticker,RR4
+00909,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00909.TW,https://www.cathaysite.com.tw/ETF/detail/EDD,ok,ok,RR5,equity_concentration_rule,
+00910,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00910.TW,https://www.fsitc.com.tw/FundDetail.aspx?ID=167#TabLinkdivEditTab1,ok,ok,RR4,explicit_override,RR1; RR5; RR4; RR4
+00911,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00911.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=16,ok,ok,RR5,equity_concentration_rule,RR1; RR2; RR3; RR4; RR5
+00912,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00912.TW,https://www.ctbcinvestments.com.tw/Etf/88319403/Info,ok,ok,RR4,equity_broad_rule,
+00913,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00913.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=17,ok,ok,RR5,equity_concentration_rule,RR1; RR2; RR3; RR4; RR5
+00915,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00915.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J015,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4
+00916,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00916.TW,https://www.cathaysite.com.tw/ETF/detail/EDF,ok,ok,RR4,equity_broad_rule,
+00917,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00917.TW,https://www.ctbcinvestments.com.tw/Etf/88326299/Info,ok,ok,RR4,equity_broad_rule,
+00918,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00918.TW,https://www.uobam.com.tw/fund/etf/88329556,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR1; RR5; RR5
+00919,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00919.TW,https://www.capitalfund.com.tw/etf/product/detail/195,ok,ok,RR4,equity_broad_rule,
+00920,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00920.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00920,ok,ok,RR4,official_nearest_ticker,RR4
+00921,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00921.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=18,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00922,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00922.TW,https://www.cathaysite.com.tw/ETF/detail/EDO,ok,ok,RR4,equity_broad_rule,
+00923,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00923.TW,https://www.capitalfund.com.tw/etf/product/detail/365,ok,ok,RR4,equity_broad_rule,
+00924,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00924.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF20,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4
+00926,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00926.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J016,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4
+00927,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00927.TW,https://www.capitalfund.com.tw/etf/product/detail/366,ok,ok,RR5,equity_concentration_rule,
+00928,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00928.TW,https://www.ctbcinvestments.com.tw/Etf/88398743/Info,ok,ok,RR4,equity_broad_rule,
+00929,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00929.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF21,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5
+00930,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00930.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=B5,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00931B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00931B.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=44YTW,ok,ok,RR2,official_nearest_ticker,RR2; RR2
+00932,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00932.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=19,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00933B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00933B.TW,https://www.cathaysite.com.tw/ETF/detail/EDT,ok,ok,RR2,bond_risk_rule,
+00934,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00934.TW,https://www.ctbcinvestments.com.tw/Etf/93150242/Info,ok,ok,RR4,equity_broad_rule,
+00935,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00935.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00935,ok,ok,RR5,equity_concentration_rule,
+00936,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00936.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00936,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00937B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00937B.TW,https://www.capitalfund.com.tw/etf/product/detail/378,ok,ok,RR2,bond_risk_rule,
+00938,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00938.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J017,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4
+00939,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00939.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=46YTW,ok,ok,RR4,official_nearest_ticker,RR4; RR4
+00940,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00940.TW,https://www.yuantaetfs.com/product/detail/00940/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00941,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00941.TW,https://www.ctbcinvestments.com.tw/Etf/93176279/Info,ok,ok,RR5,equity_concentration_rule,
+00942B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00942B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00942B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00943,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00943.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=20,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00944,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00944.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00944&tab=basic,ok,ok,RR4,equity_broad_rule,
+00945B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00945B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J018,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3
+00946,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00946.TW,https://www.capitalfund.com.tw/etf/product/detail/388,ok,ok,RR5,equity_concentration_rule,
+00947,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00947.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00947,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00948B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00948B.TW,https://www.ctbcinvestments.com.tw/Etf/93218545/Info,ok,ok,RR2,bond_risk_rule,
+00949,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00949.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF22,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4
+00950B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00950B.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J019,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00951,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00951.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00951,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00952,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00952.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J020,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5
+00953B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00953B.TW,https://www.capitalfund.com.tw/etf/product/detail/389,ok,ok,RR3,bond_risk_rule,
+00954,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00954.TW,https://www.ctbcinvestments.com.tw/Etf/00512651/Info,ok,ok,RR5,equity_concentration_rule,
+00955,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00955.TW,https://www.ctbcinvestments.com.tw/Etf/00512646/Info,ok,ok,RR4,equity_broad_rule,
+00956,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00956.TW,https://www.ctbcinvestments.com.tw/Etf/00512630/Info,ok,ok,RR4,equity_broad_rule,
+00957B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00957B.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=21,ok,ok,RR2,bond_risk_rule,RR1; RR2; RR3; RR4; RR5
+00958B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00958B.TW,https://sitc.sinopac.com/newweb/sitcFund/page.do?stock_id=D8,ok,ok,RR2,bond_risk_rule,RR1; RR2; RR3; RR4; RR5
+00959B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00959B.TW,https://www.uobam.com.tw/fund/etf/00515073,ok,ok,RR2,explicit_override,RR2; RR2; RR1; RR5; RR5
+00960,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00960.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00960&tab=basic,ok,ok,RR4,equity_broad_rule,
+00961,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00961.TW,https://www.ftft.com.tw/etf/product/details/?id=162,ok,ok,RR4,equity_broad_rule,
+00962,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00962.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00962,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5; RR5; RR5
+00963,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00963.TW,https://www.ctbcinvestments.com.tw/Etf/00527303/Info,ok,ok,RR4,equity_broad_rule,
+00964,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00964.TW,https://www.ctbcinvestments.com.tw/Etf/00527296/Info,ok,ok,RR4,equity_broad_rule,
+00965,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00965.TW,https://www.yuantaetfs.com/product/detail/00965/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00966B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00966B.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=47YTW,ok,ok,RR2,official_nearest_ticker,RR2; RR2
+00967B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00967B.TW,https://www.yuantaetfs.com/product/detail/00967B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00968B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00968B.TW,https://www.yuantaetfs.com/product/detail/00968B/Basic_information,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00969B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00969B.TW,https://www.yuantaetfs.com/product/detail/00969B/Basic_information,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+00970B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00970B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00970B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00971,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00971.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00971,ok,ok,RR4,equity_broad_rule,
+00972,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00972.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00972,ok,ok,RR4,equity_broad_rule,
+009800,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009800.TW,https://www.ctbcinvestments.com.tw/Etf/00568922/Info,ok,ok,RR4,equity_broad_rule,
+009801,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009801.TW,https://www.ctbcinvestments.com.tw/Etf/00568937/Info,ok,ok,RR5,equity_concentration_rule,
+009802,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009802.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=009802,ok,ok,RR4,official_nearest_ticker,RR4
+009803,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009803.TW,https://www.esunam.com/ETF/etf-info/50?tab=1,ok,ok,RR4,equity_broad_rule,
+009804,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009804.TW,https://www.usitc.com.tw/CustCenter/BuyBackList,ok,ok,RR4,equity_broad_rule,RR1; RR5
+009805,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009805.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/009805,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+009806,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009806.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/009806,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+009807,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009807.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/009807,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+009808,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009808.TW,https://www.hnfunds.com.tw/etf/overview/009808,ok,ok,RR4,equity_broad_rule,
+009809,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009809.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=009809,ok,ok,RR4,official_nearest_ticker,RR4
+00980A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00980A.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00980A,ok,ok,RR4,equity_broad_rule,
+00980B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00980B.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00980B,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR2
+00980D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00980D.TW,https://www.abfunds.com.tw/zh-tw/funds/etf/active/fixed-income/abitl-ig-corp-income-active-etf.-.TW00000980D8.html,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2; RR1
+00980T,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00980T.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J021,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4
+009810,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009810.TW,https://www.esunam.com/ETF/etf-info/51?tab=1,ok,ok,RR4,equity_broad_rule,
+009811,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009811.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=50YTW,ok,ok,RR4,official_nearest_ticker,RR4; RR4
+009812,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009812.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=009812&tab=basic,ok,ok,RR4,equity_broad_rule,
+009813,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009813.TW,https://www.blackrock.com/tw/products/345655/,ok,ok,RR4,equity_broad_rule,
+009814,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009814.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=009814,ok,ok,RR4,official_nearest_ticker,RR4
+009815,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009815.TW,https://www.uobam.com.tw/fund/etf/00648622,ok,ok,RR5,official_nearest_ticker,RR5; RR5; RR5
+009816,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009816.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J023,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4
+009817,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009817.TW,https://www.cathaysite.com.tw/ETF/detail/EE9,ok,ok,RR4,equity_broad_rule,
+009818,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009818.TW,https://www.hnfunds.com.tw/etf/overview/009818,ok,ok,RR4,equity_broad_rule,
+009819,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009819.TW,https://www.ctbcinvestments.com.tw/Etf/00669317/Info,ok,ok,RR4,equity_broad_rule,
+00981A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00981A.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=49YTW,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00981B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00981B.TW,https://www.fsitc.com.tw/FundDetail.aspx?ID=177#TabLinkdivEditTab9,ok,error,RR3,bond_risk_rule,
+00981D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00981D.TW,https://www.ctbcinvestments.com.tw/Etf/00606159/Info,ok,ok,RR3,bond_risk_rule,
+00981T,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00981T.TW,https://www.kgifund.com.tw/Fund/Detail?fundID=J022,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3
+009820,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009820.TW,https://www.yuantaetfs.com/product/detail/009820/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+009821,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009821.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=009821&tab=basic,ok,ok,RR4,equity_broad_rule,
+009822,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009822.TW,https://www.hnfunds.com.tw/etf/overview/009822,ok,ok,RR4,equity_broad_rule,
+009823,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009823.TW,https://www.capitalfund.com.tw/etf/product/detail/501,ok,ok,RR4,explicit_override,
+009824,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009824.TW,https://www.capitalfund.com.tw/etf/product/detail/503,ok,ok,RR4,explicit_override,
+009825,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009825.TW,https://www.usitc.com.tw/CustCenter/BuyBackList,ok,ok,RR5,explicit_override,RR1; RR5
+009826,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009826.TW,https://www.blackrock.com/tw/products/351824/blackrock-ishares-global-all-cap-etf,ok,ok,RR4,explicit_override,
+009827,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009827.TW,https://www.esunam.com/ETF/etf-info/53?tab=1,ok,ok,RR4,explicit_override,
+009828,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009828.TW,https://www.ctbcinvestments.com/Etf/00719359/Info,ok,ok,RR5,explicit_override,
+009829,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=009829.TW,https://www.uobam.com.tw/fund/etf/00719554,ok,ok,RR5,explicit_override,RR5; RR5; RR5
+00982A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00982A.TW,https://www.capitalfund.com.tw/etf/product/detail/399,ok,ok,RR4,equity_broad_rule,
+00982B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00982B.TW,https://www.ftft.com.tw/etf/product/details/?id=173,ok,ok,RR2,bond_risk_rule,
+00982D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00982D.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00982D,ok,ok,RR2,official_nearest_ticker,RR2
+00982T,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00982T.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=22,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00983A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00983A.TW,https://www.ctbcinvestments.com.tw/Etf/00586267/Info,ok,ok,RR4,equity_broad_rule,
+00983B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00983B.TW,https://www.uobam.com.tw/fund/etf/00580860,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR1; RR5
+00983D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00983D.TW,https://websys.fsit.com.tw/FubonETF/Fund/Profile.aspx?stkId=00983D,ok,ok,RR2,official_nearest_ticker,RR2
+00984A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00984A.TW,https://etf.allianzgi.com.tw/etf-info/E0001,ok,ok,RR4,equity_broad_rule,
+00984B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00984B.TW,https://www.uobam.com.tw/fund/etf/00580854,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR1; RR5
+00984D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00984D.TW,https://www.abfunds.com.tw/zh-tw/funds/etf/active/fixed-income/abitl-select-global-high-yield-active-etf.-.TW00000984D0.html,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR1
+00985A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00985A.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00985A&tab=basic,ok,ok,RR4,equity_broad_rule,
+00985B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00985B.TW,https://www.capitalfund.com.tw/etf/product/detail/390,ok,ok,RR2,bond_risk_rule,
+00985D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00985D.TW,https://www.blackrock.com/tw/products/349339/,ok,ok,RR2,bond_risk_rule,
+00986A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00986A.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00986A,ok,ok,RR3,official_nearest_ticker,RR3; RR3; RR3; RR3; RR3
+00986B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00986B.TW,https://www.ftft.com.tw/etf/product/details/?id=176,ok,ok,RR2,bond_risk_rule,
+00986D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00986D.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF25,ok,ok,RR2,official_nearest_ticker,RR2; RR2; RR2; RR2
+00987A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00987A.TW,https://www.tsit.com.tw/ETF/Home/ETFSeriesDetail/00987A,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00987B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00987B.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00987B&tab=basic,ok,ok,RR2,bond_risk_rule,
+00987D,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00987D.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=65YTW,ok,ok,RR2,explicit_override,RR2; RR2; RR2
+00988A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00988A.TW,https://www.ezmoney.com.tw/ETF/Fund/Info?fundCode=61YTW,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00988B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00988B.TW,https://www.esunam.com/ETF/etf-info/52?tab=1,ok,ok,RR3,bond_risk_rule,
+00989A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00989A.TW,https://am.jpmorgan.com/tw/zh/asset-management/twetf/products/jpmorgan-taiwan-us-tech-leaders-active-etf-TW00000989A5,ok,ok,RR5,equity_concentration_rule,
+00989B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00989B.TW,https://www.tsit.com.tw/active/202601TSIT_US_Focus/00989B/,ok,ok,RR3,bond_risk_rule,
+00990A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00990A.TW,https://www.yuantaetfs.com/product/detail/00990A/Basic_information,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4; RR4
+00990B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00990B.TW,https://www.cathaysite.com.tw/ETF/detail/EEB,ok,ok,RR3,explicit_override,
+00991A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00991A.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF23,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4
+00991B,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00991B.TW,https://www.blackrock.com/tw/products/351827/blackrock-ishares-10%20-year-usd-a-rated-corporate-bond-etf,ok,ok,RR2,explicit_override,
+00992A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00992A.TW,https://www.capitalfund.com.tw/etf/product/detail/500,ok,ok,RR5,equity_concentration_rule,
+00993A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00993A.TW,https://etf.allianzgi.com.tw/etf-info/E0002,ok,ok,RR4,equity_broad_rule,
+00994A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00994A.TW,https://www.fsitc.com.tw/FundDetail.aspx?ID=182#TabLinkdivEditTab9,ok,error,RR4,equity_broad_rule,
+00995A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00995A.TW,https://www.ctbcinvestments.com.tw/Etf/00653201/Info,ok,ok,RR4,equity_broad_rule,
+00996A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00996A.TW,https://www.megafunds.com.tw/MEGA/etf/etf_product.aspx?id=23,ok,ok,RR4,equity_broad_rule,RR1; RR2; RR3; RR4; RR5
+00997A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00997A.TW,https://www.capitalfund.com.tw/etf/product/detail/502,ok,ok,RR4,equity_broad_rule,
+00998A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00998A.TW,https://www.fhtrust.com.tw/ETF/etf_detail/ETF24,ok,ok,RR4,official_nearest_ticker,RR4; RR4; RR4; RR4
+00999A,https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid=00999A.TW,https://www.nomurafunds.com.tw/ETFWEB/product-description?fundNo=00999A&tab=basic,ok,ok,RR4,equity_broad_rule,
