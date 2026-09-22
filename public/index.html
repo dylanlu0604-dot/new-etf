@@ -593,8 +593,8 @@ function renderTable(results, meta) {
     { key: "主題標籤", label: "主題標籤" },
     { key: "zacks_category", label: "zacks_category" },
     { key: "zacks_sector", label: "zacks_sector" },
-    { key: "sector_general", label: "sector_general" },
-    { key: "sector_specific", label: "sector_specific" },
+    { key: "region_general", label: "region_general" },
+    { key: "region_specific", label: "region_specific" },
     { key: "commodity_type", label: "commodity_type" },
     { key: "currency", label: "currency" },
     { key: "leveraged", label: "leveraged" },
@@ -639,7 +639,7 @@ function renderTable(results, meta) {
 
 function exportCSV() {
   if (!currentResults.length) return;
-  const cols = ["ticker","繁中名稱","主題標籤","zacks_category","zacks_sector","sector_general","sector_specific","commodity_type","currency","leveraged","actively_managed","risk_rank","繁中敘述"];
+  const cols = ["ticker","繁中名稱","主題標籤","zacks_category","zacks_sector","region_general","region_specific","commodity_type","currency","leveraged","actively_managed","risk_rank","繁中敘述"];
   const bom = "\uFEFF";
   let csv = bom + cols.join(",") + "\n";
   for (const r of currentResults) {

@@ -144,8 +144,8 @@ Fixed Income / Investment Grade Corporate Bond ETFs / Global / Broad
 | `主題標籤` | AI 判斷後、經程式驗證的繁中主題名稱；多個主題以 `、` 串接 |
 | `zacks_category` | `Commodities`、`Currency`、`Equity` 或 `Fixed Income` |
 | `zacks_sector` | 僅固定收益 ETF 使用的債券分類；其他類別留白 |
-| `sector_general` | 大區域分類，例如 `Global` 或 `North America` |
-| `sector_specific` | 細分區域，例如 `Taiwan`、`U.S.` 或 `Broad` |
+| `region_general` | 大區域分類，例如 `Global` 或 `North America` |
+| `region_specific` | 細分區域，例如 `Taiwan`、`U.S.` 或 `Broad` |
 | `commodity_type` | 僅商品 ETF 使用，例如 `Energy` |
 | `currency` | 僅貨幣 ETF 使用，例如 `USD` |
 | `risk_rank` | 具來源證據的 `RR1` 至 `RR5`；未證實則留白 |
