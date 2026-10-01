@@ -1,10 +1,15 @@
 {
-  "generated_at": "2026-09-24T19:20:30.181860+08:00",
-  "as_of_date": "2026-09-24",
-  "moneydj_filter": "成立日期 >= 2026-06-16",
+  "generated_at": "2026-10-01T20:42:20.555119+08:00",
+  "as_of_date": "2026-10-01",
+  "moneydj_filter": "成立日期 >= 2026-06-23",
   "source": "moneydj-only",
   "crawler_warnings": [],
   "moneydj": [
+    {
+      "ticker": "00992B",
+      "name": "街口優息非投債",
+      "established_date": "2026-09-29"
+    },
     {
       "ticker": "00412A",
       "name": "主動安聯亞半導體",
@@ -72,6 +77,7 @@
     }
   ],
   "new_list": [
+    "00992B",
     "00412A",
     "009827",
     "009828",
