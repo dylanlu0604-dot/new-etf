@@ -1,10 +1,15 @@
 {
-  "generated_at": "2026-10-08T21:02:20.961338+08:00",
-  "as_of_date": "2026-10-08",
-  "moneydj_filter": "成立日期 >= 2026-06-30",
+  "generated_at": "2026-10-15T19:02:51.713551+08:00",
+  "as_of_date": "2026-10-15",
+  "moneydj_filter": "成立日期 >= 2026-07-07",
   "source": "moneydj-only",
   "crawler_warnings": [],
   "moneydj": [
+    {
+      "ticker": "00416A",
+      "name": "主動台新臺灣中小",
+      "established_date": "2026-10-14"
+    },
     {
       "ticker": "00415A",
       "name": "主動群益核心50",
@@ -64,19 +69,10 @@
       "ticker": "00991B",
       "name": "貝萊德A級公司債",
       "established_date": "2026-07-22"
-    },
-    {
-      "ticker": "00408A",
-      "name": "主動第一金優股息",
-      "established_date": "2026-07-06"
-    },
-    {
-      "ticker": "009825",
-      "name": "聯邦美國金融創新",
-      "established_date": "2026-07-01"
     }
   ],
   "new_list": [
+    "00416A",
     "00415A",
     "00992B",
     "00412A",
@@ -88,8 +84,6 @@
     "00987D",
     "00410A",
     "009826",
-    "00991B",
-    "00408A",
-    "009825"
+    "00991B"
   ]
 }
