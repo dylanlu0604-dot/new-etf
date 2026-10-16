@@ -2,7 +2,7 @@
 
 ## 目的
 
-`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-6-luna`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。敘述目標為約 400 至 500 字，至少 360 個非空白字元、220 個中文字及 4 句不重複的完整句子，並清楚區分實際持倉、指數成分股、募集時預擬配置與例示標的；早於基金成立日的持倉資料不可描述為實際持倉，不配息基金不得推薦給以領息為目標的投資人。字數、句數與欄位一致性檢查通過後，Luna 會再根據原始來源查核敘述及所有分類欄位；查核失敗時整筆資料重生並再次查核，最多重試兩次，仍未通過就拒絕輸出。API 錯誤日誌會遮蔽金鑰內容。
+`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-6-luna`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。敘述目標為約 400 至 500 字，至少 360 個非空白字元、220 個中文字及 4 句不重複的完整句子，並清楚區分實際持倉、指數成分股、募集時預擬配置與例示標的；早於基金成立日的持倉資料不可描述為實際持倉，不配息基金不得推薦給以領息為目標的投資人。字數、句數與欄位一致性檢查通過後，Luna 會再根據原始來源查核敘述及所有分類欄位；查核失敗時只重試未通過的 ticker，保留已核准的結果，最多重試四次，仍未通過就拒絕輸出。API 錯誤日誌會遮蔽金鑰內容。
 
 此檔案與 `etf_research.py` 採用相同研究、分類、風險驗證與模型呼叫流程。唯一的輸出差異是移除了下列 CSV 欄位：
 
@@ -41,7 +41,7 @@ export OPENAI_BATCH_SIZE=3
 export URL_TO_MARKDOWN_TIMEOUT_SECONDS=45
 ```
 
-批次大小會被限制在 1 至 3 檔。這是為了避免大量全文資料被放進同一個 prompt，導致成本、截斷或模型輸出品質失控。
+批次大小會被限制在 1 至 3 檔；每週 Action 固定使用 1 檔，減少同一個 prompt 中的來源混雜。查核失敗時僅把未通過的 ticker 與原始來源送回模型。
 
 ## TinyFish 安裝與搜尋邏輯
 
@@ -154,9 +154,9 @@ Fixed Income / Investment Grade Corporate Bond ETFs / Global / Broad
 
 ## 失敗處理與觀測
 
-- 單一 ticker 搜尋失敗不會中斷整批；它仍會寫入一列，`繁中敘述` 以錯誤訊息說明。
+- 單一 ticker 搜尋失敗會阻止整份 CSV 發布，不會把錯誤訊息當成研究敘述。
 - URL-to-Markdown 個別來源失敗時會保留失敗狀態；其他成功正文仍可供模型使用。
-- 未設定 `OPENAI_API_KEY`、API 呼叫失敗、回傳 ticker 不完整，或敘述少於 100 字時，工具停止且不寫出 CSV；不再發布備援短句。
+- 未設定 `OPENAI_API_KEY`、API 呼叫失敗、回傳 ticker 不完整，或敘述未達 360 個非空白字元、220 個中文字與 4 句時，工具停止且不寫出 CSV。設定 `ETF_RESEARCH_DIAGNOSTICS` 可將逐檔狀態寫成 JSON；每週 Action 會顯示摘要並上傳診斷檔。
 - CLI 會輸出每檔 Markdown 成功數、風險等級、TinyFish 搜尋次數，以及 OpenAI 的 token 和預估成本。
 
 ## 驗證建議

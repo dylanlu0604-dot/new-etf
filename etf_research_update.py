@@ -10,8 +10,9 @@ ETF Research CLI - 台灣 ETF 分類與描述產生器
 """
 
 import argparse, concurrent.futures, csv, json, os, re, subprocess, sys, time
+from pathlib import Path
 from urllib.parse import quote, urlparse
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 import urllib.request
 def _sanitize_openai_error(message):
@@ -24,18 +25,27 @@ def _post_json(url, headers, payload, timeout=120):
     """POST JSON and return parsed response dict."""
     data = json.dumps(payload).encode()
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return json.loads(resp.read())
-    except HTTPError as exc:
-        body = exc.read().decode("utf-8", "replace")
+    for attempt in range(3):
         try:
-            error = json.loads(body).get("error", {})
-            detail = error.get("message") or error.get("code") or body
-        except (TypeError, ValueError):
-            detail = body
-        safe_detail = _sanitize_openai_error(detail)
-        raise RuntimeError(f"OpenAI API HTTP {exc.code}: {safe_detail[:1200]}") from None
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read())
+        except HTTPError as exc:
+            body = exc.read().decode("utf-8", "replace")
+            if exc.code in (429, 500, 502, 503, 504) and attempt < 2:
+                time.sleep(min(20, 2 ** (attempt + 1)))
+                continue
+            try:
+                error = json.loads(body).get("error", {})
+                detail = error.get("message") or error.get("code") or body
+            except (TypeError, ValueError):
+                detail = body
+            safe_detail = _sanitize_openai_error(detail)
+            raise RuntimeError(f"OpenAI API HTTP {exc.code}: {safe_detail[:1200]}") from None
+        except (URLError, TimeoutError) as exc:
+            if attempt < 2:
+                time.sleep(2 ** (attempt + 1))
+                continue
+            raise RuntimeError(f"OpenAI API network error after 3 attempts: {_sanitize_openai_error(exc)}") from None
 
 # ── Config ──
 
@@ -56,7 +66,7 @@ URL_TO_MARKDOWN_API = os.environ.get("URL_TO_MARKDOWN_API", "http://127.0.0.1:80
 URL_TO_MARKDOWN_TIMEOUT = int(os.environ.get("URL_TO_MARKDOWN_TIMEOUT_SECONDS", "45"))
 URL_TO_MARKDOWN_FALLBACK = os.environ.get("URL_TO_MARKDOWN_FALLBACK", "").strip().lower()
 OPENAI_BATCH_SIZE = max(1, min(3, int(os.environ.get("OPENAI_BATCH_SIZE", "3"))))
-MAX_OPENAI_QUALITY_RETRIES = 2
+MAX_OPENAI_QUALITY_RETRIES = 4
 MIN_DESCRIPTION_CHARACTERS = 360
 MIN_DESCRIPTION_HAN_CHARACTERS = 220
 MIN_DESCRIPTION_SENTENCES = 4
@@ -1190,9 +1200,9 @@ def markdown_evidence_for_prompt(data):
     return "\n\n".join(sections) or "（URL to Markdown 沒有取得全文）"
 
 def build_openai_prompt(ticker_data):
-    schema = """你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成兩件事：
+    schema = """你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成三件事：
 
-1. **繁中敘述**：用繁體中文寫一段約400至500字的ETF介紹，至少360個非空白字元、220個中文字，並寫成至少4句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。日期若有年份來源，應明確寫出年份；同一期間的後續日期可用「同年」簡寫。清楚區分實際持倉、指數成分股、募集時預擬配置及僅供舉例的標的；來源有「不代表基金持有」等註記時，不可把例示公司描述為實際持股。判斷持倉資料時必須比對資料日期與基金成立日：若資料早於成立日，即使網頁稱為「持股」也不得寫成基金實際持倉；僅在來源明確時稱為指數成分、上市前預擬配置或例示，標明資料日期並說明不是實際持倉，狀態不清楚就省略個股名稱。若基金不配息或不進行收益分配，不得把領息、現金收入或定期現金流寫成投資人的目標；應改以資本增值或資產累積描述，不能使用「不定期領息」等矛盾說法。不得捏造缺少的數字或細節，也不得用重述名稱、空泛風險句、無關免責聲明或「資料未提供」等填充語拉長篇幅。資料不足以寫成至少360字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
+1. **繁中敘述**：用繁體中文寫一段約400至500字的ETF介紹，至少360個非空白字元、220個中文字，並寫成至少4句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率。只有來源明確描述適合的投資人時才寫適合度；不可僅憑策略或 RR 等級自行推論。日期若有年份來源，應明確寫出年份；同一期間的後續日期可用「同年」簡寫。清楚區分實際持倉、指數成分股、募集時預擬配置及僅供舉例的標的；來源有「不代表基金持有」等註記時，不可把例示公司描述為實際持股。判斷持倉資料時必須比對資料日期與基金成立日：若資料早於成立日，即使網頁稱為「持股」也不得寫成基金實際持倉；僅在來源明確時稱為指數成分、上市前預擬配置或例示，標明資料日期並說明不是實際持倉，狀態不清楚就省略個股名稱。若基金不配息或不進行收益分配，不得把領息、現金收入或定期現金流寫成投資人的目標；應改以資本增值或資產累積描述，不能使用「不定期領息」等矛盾說法。費率若按資產規模級距列示，不得自行寫成僅對超額部分分段計費；債券信評與剔除條件需精確保留來源的觀察期間和降評幅度。不得捏造缺少的數字或細節，也不得用重述名稱、空泛風險句、無關免責聲明或「資料未提供」等填充語拉長篇幅。資料不足以寫成至少360字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
 2. **分類校正**：檢查並校正以下欄位（如果預設分類有誤請修正）：
    - zacks_category: Commodities / Currency / Equity / Fixed Income
    - zacks_sector: 只有Fixed Income才需填，否則留空
@@ -1244,7 +1254,7 @@ def build_openai_quality_retry_prompt(original_prompt, previous_results, failure
         + draft
         + "\n\n程式驗收失敗項目：\n"
         + feedback
-        + "\n請依上方 ETF 原始來源重新研究並重生整批 JSON。修正問題時必須同時重核繁中敘述、主題標籤與所有分類欄位，不可沿用未被來源支持的草稿值。不得為了通過字數檢查添加無來源細節；無法確認的細節請省略。仍須符合原始 JSON schema。"
+        + "\n請只回傳本次列出的 ETF。依來源對指出的問題做最小幅度修正，保留草稿中有來源支持的其他句子和欄位；同時確認修正後的敘述、主題標籤與分類一致。無來源的細節請刪除，不得為了字數新增推論或重寫整段已通過的內容。仍須符合原始 JSON schema。"
     )
 
 
@@ -1259,7 +1269,7 @@ def build_openai_fact_check_prompt(original_prompt, candidate_results):
         "持倉與指數成分的差異，以及每個主題標籤是否有獨立依據。若一項重要細節沒有來源、與來源矛盾，或描述與分類互相衝突，"
         "就拒絕該 ticker，並在 issues 中指出欄位、錯誤內容及應如何修正或刪除；不要只因文字流暢或字數達標而核准。"
         "若所有事實與欄位均有依據且一致，approved 才能為 true 並回傳空 issues。"
-        "回傳 results，且每個預期 ticker 恰好出現一次。\n\n原始來源任務：\n"
+        "只對待查核草稿中的 ticker 回傳 results，且每個恰好出現一次。\n\n原始來源任務：\n"
         + original_prompt
         + "\n\n待查核草稿（不可信，請逐項驗證）：\n"
         + draft
@@ -1271,7 +1281,9 @@ def validate_openai_fact_check(expected_tickers, audit_results):
         return [{"ticker": "batch", "issues": ["fact-check result is not an array"]}]
     by_ticker = {str(item.get("ticker", "")).strip().upper(): item
                  for item in audit_results if isinstance(item, dict)}
-    if set(by_ticker) != set(expected_tickers) or len(by_ticker) != len(expected_tickers):
+    if (len(audit_results) != len(expected_tickers)
+            or set(by_ticker) != set(expected_tickers)
+            or len(by_ticker) != len(expected_tickers)):
         return [{"ticker": "batch", "issues": [
             f"fact-check returned tickers {sorted(by_ticker)}; expected exactly {expected_tickers}"
         ]}]
@@ -1282,6 +1294,17 @@ def validate_openai_fact_check(expected_tickers, audit_results):
             issues = item.get("issues") if isinstance(item.get("issues"), list) else []
             failures.append({"ticker": ticker, "issues": issues or ["fact-check did not approve the record"]})
     return failures
+
+
+def save_research_diagnostics(payload):
+    path = os.environ.get("ETF_RESEARCH_DIAGNOSTICS", "").strip()
+    if not path:
+        return
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_suffix(target.suffix + ".tmp")
+    temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(target)
 
 
 def call_openai(prompt, response_format=OPENAI_RESPONSE_TEXT_FORMAT):
@@ -1383,6 +1406,13 @@ def main():
         print("錯誤：請先設定 OPENAI_API_KEY；未完成模型研究時不會輸出 CSV。", file=sys.stderr)
         sys.exit(2)
 
+    diagnostics = {
+        "status": "running", "model": OPENAI_MODEL,
+        "requested_tickers": tickers,
+        "records": {ticker: {"status": "pending", "attempts": 0, "issues": []} for ticker in tickers},
+    }
+    save_research_diagnostics(diagnostics)
+
     print(f"📊 開始研究 {len(tickers)} 檔 ETF: {', '.join(tickers)}")
 
     # Step 1: TinyFish research (sequential, rate-limit safe)
@@ -1392,11 +1422,14 @@ def main():
         result = research_ticker(t)
         ticker_data.append(result)
         if result.get("error"):
+            diagnostics["records"][t].update(status="source_failed", issues=[str(result["error"])])
             print(f" ❌ {result['error']}")
         else:
+            diagnostics["records"][t]["status"] = "sources_ready"
             rr = result["pre"]["riskRank"] or "-"
             markdown_ok = sum(1 for source in result.get("markdownResults", []) if source.get("status") == "ok")
             print(f" ✅ {result['etfName']} (RR={rr}, markdown={markdown_ok}/{len(result.get('selectedUrls', []))})")
+        save_research_diagnostics(diagnostics)
         if i < len(tickers) - 1:
             time.sleep(0.8)
 
@@ -1419,10 +1452,20 @@ def main():
             batch_num = bi // BATCH_SIZE + 1
             print(f"  📦 批次 {batch_num}/{num_batches}: {[d['ticker'] for d in batch]}", flush=True)
             expected_tickers = [d["ticker"] for d in batch]
-            original_prompt = build_openai_prompt(batch)
-            prompt = original_prompt
-            batch_results = []
+            batch_data_by_ticker = {d["ticker"]: d for d in batch}
+            approved_results = {}
+            previous_results = {}
+            pending_tickers = expected_tickers[:]
+            pending_failures = []
             for attempt in range(MAX_OPENAI_QUALITY_RETRIES + 1):
+                pending_data = [batch_data_by_ticker[ticker] for ticker in pending_tickers]
+                original_prompt = build_openai_prompt(pending_data)
+                prompt = (original_prompt if attempt == 0 else
+                          build_openai_quality_retry_prompt(
+                              original_prompt,
+                              [previous_results[ticker] for ticker in pending_tickers
+                               if ticker in previous_results],
+                              pending_failures))
                 resp = call_openai(prompt)
                 total_calls += 1
                 total_input += resp["input_tokens"]
@@ -1431,23 +1474,23 @@ def main():
                 parsed = json.loads(resp["text"])
                 candidate_results = parsed.get("results")
                 candidate_results = candidate_results if isinstance(candidate_results, list) else []
-                returned_tickers = [str(item.get("ticker", "")).replace(".TW", "").strip().upper()
+                returned_tickers = [re.sub(r"\.TW$", "", str(item.get("ticker", "")), flags=re.I).strip().upper()
                                     for item in candidate_results if isinstance(item, dict)]
                 failures = []
-                if (len(returned_tickers) != len(expected_tickers)
-                        or set(returned_tickers) != set(expected_tickers)):
-                    failures.append({
-                        "ticker": "batch",
-                        "issues": [f"returned tickers {returned_tickers}; expected exactly {expected_tickers}"],
-                    })
+                if (len(returned_tickers) != len(pending_tickers)
+                        or set(returned_tickers) != set(pending_tickers)):
+                    failures = [{
+                        "ticker": ticker,
+                        "issues": [f"returned tickers {returned_tickers}; expected exactly {pending_tickers}"],
+                    } for ticker in pending_tickers]
                 else:
-                    batch_data_by_ticker = {d["ticker"]: d for d in batch}
+                    valid_for_audit = []
                     for item in candidate_results:
-                        ticker = str(item.get("ticker", "")).strip().upper()
-                        source_data = batch_data_by_ticker.get(ticker)
-                        if source_data:
-                            # Normalize deterministic classifications before validating or auditing.
-                            item.update(normalize_classification(item, source_data))
+                        ticker = re.sub(r"\.TW$", "", str(item.get("ticker", "")), flags=re.I).strip().upper()
+                        item["ticker"] = ticker
+                        # Normalize deterministic classifications before validating or auditing.
+                        item.update(normalize_classification(item, batch_data_by_ticker[ticker]))
+                        previous_results[ticker] = item
                         if len(str(item.get("繁中名稱", "")).strip()) < 2:
                             failures.append({"ticker": ticker, "issues": ["official name is missing"]})
                             continue
@@ -1455,32 +1498,58 @@ def main():
                         issues.extend(validate_classification_output(item))
                         if issues:
                             failures.append({"ticker": ticker, "issues": issues, "stats": description_stats})
+                        else:
+                            valid_for_audit.append(item)
+                    if valid_for_audit:
+                        audit_prompt = build_openai_fact_check_prompt(original_prompt, valid_for_audit)
+                        audit_resp = call_openai(audit_prompt, OPENAI_AUDIT_TEXT_FORMAT)
+                        total_calls += 1
+                        total_input += audit_resp["input_tokens"]
+                        total_output += audit_resp["output_tokens"]
+                        total_cost += audit_resp["cost_usd"]
+                        audit = json.loads(audit_resp["text"])
+                        audit_failures = validate_openai_fact_check(
+                            [item["ticker"] for item in valid_for_audit], audit.get("results"))
+                        failures.extend(audit_failures)
+                        rejected_tickers = {failure["ticker"] for failure in audit_failures}
+                        if "batch" not in rejected_tickers:
+                            for item in valid_for_audit:
+                                if item["ticker"] not in rejected_tickers:
+                                    approved_results[item["ticker"]] = item
+                failed_tickers = {failure["ticker"] for failure in failures}
+                for ticker in pending_tickers:
+                    record = diagnostics["records"][ticker]
+                    record["attempts"] += 1
+                    if ticker in approved_results:
+                        record.update(status="approved", issues=[], description_characters=len(re.sub(r"\s", "", approved_results[ticker]["繁中敘述"])))
+                    else:
+                        issues = [issue for failure in failures
+                                  if failure["ticker"] in (ticker, "batch")
+                                  for issue in failure["issues"]]
+                        record.update(status="rejected" if attempt >= MAX_OPENAI_QUALITY_RETRIES else "retrying", issues=issues)
+                save_research_diagnostics(diagnostics)
                 if not failures:
-                    audit_prompt = build_openai_fact_check_prompt(original_prompt, candidate_results)
-                    audit_resp = call_openai(audit_prompt, OPENAI_AUDIT_TEXT_FORMAT)
-                    total_calls += 1
-                    total_input += audit_resp["input_tokens"]
-                    total_output += audit_resp["output_tokens"]
-                    total_cost += audit_resp["cost_usd"]
-                    audit = json.loads(audit_resp["text"])
-                    failures.extend(validate_openai_fact_check(expected_tickers, audit.get("results")))
-                if not failures:
-                    batch_results = candidate_results
                     print("     ✅ Luna fact-check approved all fields", flush=True)
                     break
                 if attempt >= MAX_OPENAI_QUALITY_RETRIES:
+                    diagnostics["status"] = "failed_quality_check"
+                    save_research_diagnostics(diagnostics)
                     raise RuntimeError(
                         f"OpenAI batch {batch_num} still failed quality checks after "
                         f"{MAX_OPENAI_QUALITY_RETRIES} retries: {json.dumps(failures, ensure_ascii=False)}"
                     )
+                if "batch" in failed_tickers:
+                    failed_tickers = set(pending_tickers)
+                pending_tickers = [ticker for ticker in pending_tickers if ticker in failed_tickers]
+                pending_failures = failures
                 failure_summary = json.dumps(
                     [{"ticker": failure["ticker"], "issues": failure["issues"]} for failure in failures],
                     ensure_ascii=False)
-                print(f"     ⚠️ 品質驗收未通過（重試 {attempt + 1}/{MAX_OPENAI_QUALITY_RETRIES}）："
+                print(f"     ⚠️ 只重試 {pending_tickers}（{attempt + 1}/{MAX_OPENAI_QUALITY_RETRIES}）："
                       f"{failure_summary[:1500]}", flush=True)
-                prompt = build_openai_quality_retry_prompt(original_prompt, candidate_results, failures)
+            batch_results = [approved_results[ticker] for ticker in expected_tickers]
             openai_results.extend(batch_results)
-            print(f"     ✅ 回傳 {len(batch_results)} 檔")
+            print(f"     ✅ 回傳 {len(batch_results)} 檔", flush=True)
         openai_info = {"calls": total_calls, "input_tokens": total_input,
                        "output_tokens": total_output, "cost_usd": total_cost}
         if openai_results:
@@ -1524,10 +1593,28 @@ def main():
         for row in rows:
             writer.writerow({c: row.get(c, "") for c in CSV_COLUMNS})
 
+    diagnostics["status"] = "complete"
+    diagnostics["output"] = out_path
+    diagnostics["row_count"] = len(rows)
+    save_research_diagnostics(diagnostics)
+
     print(f"\n✅ 已輸出 {len(rows)} 檔 ETF → {out_path}")
     print(f"   TinyFish 搜尋: {sum(d.get('searchAttempts',1) for d in ticker_data)} 次")
     print(f"   OpenAI 呼叫: {openai_info['calls']} 次 ({openai_info['input_tokens']}+{openai_info['output_tokens']} tokens, ${openai_info['cost_usd']:.6f})")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        path = os.environ.get("ETF_RESEARCH_DIAGNOSTICS", "").strip()
+        if path and Path(path).exists():
+            try:
+                diagnostics = json.loads(Path(path).read_text(encoding="utf-8"))
+                if diagnostics.get("status") != "failed_quality_check":
+                    diagnostics["status"] = "failed"
+                diagnostics["error"] = _sanitize_openai_error(exc)
+                save_research_diagnostics(diagnostics)
+            except Exception as diagnostics_error:
+                print(f"Could not save research diagnostics: {diagnostics_error}", file=sys.stderr)
+        raise
