@@ -235,6 +235,10 @@ function validateDescription(text) {
   const unqualifiedDateSentences = sentences
     .map((sentence) => ({ sentence, dates: sentence.match(/(?:\d{1,2}\s*月\s*\d{1,2}\s*日|(?<!\d)\d{1,2}\/\d{1,2}(?!\d))/gu) || [] }))
     .filter(({ sentence, dates }) => dates.length > 0 && !yearPattern.test(sentence));
+  const isNonDistributing = /(?:不配息|不配發(?:現金)?收益|不進行(?:現金)?收益分配)/u.test(value);
+  const recommendsCashIncome = /(?<!不)(?:較適合|適合)[^。！？!?]{0,100}(?:領息|現金收入|現金流|定期收益)/u.test(value);
+  const rejectsCashIncome = /(?:不適合|不以|無需|不需|不必|不需要|不追求)[^。！？!?]{0,40}(?:領息|現金收入|現金流|定期收益)/u.test(value);
+  const distributionSuitabilityConflict = isNonDistributing && recommendsCashIncome && !rejectsCashIncome;
   const stats = {
     characters: Array.from(compact).length,
     han_characters: (compact.match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/gu) || []).length,
@@ -242,6 +246,7 @@ function validateDescription(text) {
     unique_sentences: uniqueSentences.size,
     unqualified_dates: unqualifiedDateSentences.length,
     unqualified_date_examples: unqualifiedDateSentences.slice(0, 3).map(({ sentence, dates }) => ({ dates, sentence: sentence.slice(0, 120) })),
+    distribution_suitability_conflict: Number(distributionSuitabilityConflict),
   };
   const issues = [];
   if (stats.characters < MIN_DESCRIPTION_CHARACTERS) issues.push(`under ${MIN_DESCRIPTION_CHARACTERS} non-whitespace characters`);
@@ -249,6 +254,7 @@ function validateDescription(text) {
   if (stats.sentences < MIN_DESCRIPTION_SENTENCES) issues.push(`under ${MIN_DESCRIPTION_SENTENCES} sentences`);
   if (stats.unique_sentences < stats.sentences) issues.push('contains repeated sentences');
   if (stats.unqualified_dates) issues.push('contains dates without a year');
+  if (stats.distribution_suitability_conflict) issues.push('non-distributing fund is recommended for cash income');
   return { issues, stats };
 }
 
@@ -1155,7 +1161,7 @@ function markdownEvidenceForPrompt(data) {
 function buildOpenAIPrompt(tickerData) {
   const schema = `你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成三件事：
 
-1. **繁中敘述**：用繁體中文寫一段約400至500字的ETF介紹，至少360個非空白字元、220個中文字，並寫成至少4句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。日期若有年份來源，應明確寫出年份；同一期間的後續日期可用「同年」簡寫。清楚區分實際持倉、指數成分股、募集時預擬配置及僅供舉例的標的；來源有「不代表基金持有」等註記時，不可把例示公司描述為實際持股。判斷持倉資料時必須比對資料日期與基金成立日：若資料早於成立日，即使網頁稱為「持股」也不得寫成基金實際持倉；僅在來源明確時稱為指數成分、上市前預擬配置或例示，標明資料日期並說明不是實際持倉，狀態不清楚就省略個股名稱。不得捏造缺少的數字或細節，也不得用重述名稱、空泛風險句、無關免責聲明或「資料未提供」等填充語拉長篇幅。資料不足以寫成至少360字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
+1. **繁中敘述**：用繁體中文寫一段約400至500字的ETF介紹，至少360個非空白字元、220個中文字，並寫成至少4句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。日期若有年份來源，應明確寫出年份；同一期間的後續日期可用「同年」簡寫。清楚區分實際持倉、指數成分股、募集時預擬配置及僅供舉例的標的；來源有「不代表基金持有」等註記時，不可把例示公司描述為實際持股。判斷持倉資料時必須比對資料日期與基金成立日：若資料早於成立日，即使網頁稱為「持股」也不得寫成基金實際持倉；僅在來源明確時稱為指數成分、上市前預擬配置或例示，標明資料日期並說明不是實際持倉，狀態不清楚就省略個股名稱。若基金不配息或不進行收益分配，不得把領息、現金收入或定期現金流寫成投資人的目標；應改以資本增值或資產累積描述，不能使用「不定期領息」等矛盾說法。不得捏造缺少的數字或細節，也不得用重述名稱、空泛風險句、無關免責聲明或「資料未提供」等填充語拉長篇幅。資料不足以寫成至少360字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
 2. **分類校正**：檢查並校正以下欄位（如果預設分類有誤請修正）：
    - zacks_category: Commodities / Currency / Equity / Fixed Income
    - zacks_sector: 只有Fixed Income才需填，否則留空
