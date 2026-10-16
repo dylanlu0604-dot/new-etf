@@ -24,6 +24,8 @@ collector 只使用 MoneyDJ 的靜態表格，不再依賴 WantGoo、Playwright 
 程式碼不含任何 API key；本機可以放在 `etf-app/.env`，但該檔案已列入 `.gitignore`。
 研究使用 OpenAI Responses API，預設模型為 `gpt-6-luna`；敘述目標約 400 至 500 字，至少 360 個非空白字元、220 個中文字及 4 句不重複的完整句子。敘述須清楚區分實際持倉、指數成分股、募集時預擬配置與例示標的；若持倉資料早於基金成立日，不得描述為基金實際持倉；不配息基金不可推薦給以領息為目標的投資人；日期依來源保留年份。Action 每次只處理一檔，品質驗收失敗時會依具體原因在同一次執行中自動重試最多四次；仍未達標就停止，不會發布未查核的短句。可用 `OPENAI_MODEL` 覆寫模型名稱。GitHub Actions 需在 Secrets 中設定有效的 `OPENAI_API_KEY`。
 
+每週研究只讓模型產生並查核實際會寫入 CSV 的分類。`leveraged`、`actively_managed` 不在此 CSV 中，也不會因為缺乏「完全不使用槓桿」的證明而阻擋結果；敘述本身提到槓桿時仍須有來源支持。
+
 ## 本機執行
 
 安裝 Python 依賴與瀏覽器後：

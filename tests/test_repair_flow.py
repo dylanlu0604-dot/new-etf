@@ -23,6 +23,12 @@ def description(label):
 
 
 class RepairFlowTest(unittest.TestCase):
+    def test_unpublished_boolean_fields_do_not_block_audit(self):
+        for field in ("leveraged", "actively_managed"):
+            self.assertNotIn(field, research.CSV_COLUMNS)
+            self.assertNotIn(field, research.OPENAI_RESULT_PROPERTIES)
+            self.assertNotIn(field, research.build_openai_fact_check_prompt("source", []).split("原始來源任務：")[0])
+
     def test_only_failed_ticker_is_regenerated(self):
         tickers = ["00416A", "00415A"]
         names = {tickers[0]: "測試基金甲", tickers[1]: "測試基金乙"}
@@ -44,8 +50,7 @@ class RepairFlowTest(unittest.TestCase):
                 "ticker": ticker, "繁中名稱": names[ticker], "繁中敘述": body,
                 "zacks_category": "Equity", "zacks_sector": "",
                 "region_general": "Emerging Asia Pacific", "region_specific": "Taiwan",
-                "commodity_type": "", "currency": "", "leveraged": "No",
-                "actively_managed": "No", "risk_rank": "", "topic_ids": [],
+                "commodity_type": "", "currency": "", "risk_rank": "", "topic_ids": [],
             }
 
         research_prompts = []
