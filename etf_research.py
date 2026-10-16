@@ -14,6 +14,12 @@ from urllib.parse import quote, urlparse
 from urllib.error import HTTPError
 
 import urllib.request
+def _sanitize_openai_error(message):
+    cleaned = re.sub(r"(?:incorrect\s+)?api key provided:\s*\S+", "API key was rejected", str(message), flags=re.I)
+    key = globals().get("OPENAI_API_KEY", "")
+    return cleaned.replace(key, "[REDACTED]") if key else cleaned
+
+
 def _post_json(url, headers, payload, timeout=120):
     """POST JSON and return parsed response dict."""
     data = json.dumps(payload).encode()
@@ -28,7 +34,8 @@ def _post_json(url, headers, payload, timeout=120):
             detail = error.get("message") or error.get("code") or body
         except (TypeError, ValueError):
             detail = body
-        raise RuntimeError(f"OpenAI API HTTP {exc.code}: {str(detail)[:1200]}") from exc
+        safe_detail = _sanitize_openai_error(detail)
+        raise RuntimeError(f"OpenAI API HTTP {exc.code}: {safe_detail[:1200]}") from None
 
 # ── Config ──
 
@@ -49,6 +56,8 @@ URL_TO_MARKDOWN_API = os.environ.get("URL_TO_MARKDOWN_API", "http://127.0.0.1:80
 URL_TO_MARKDOWN_TIMEOUT = int(os.environ.get("URL_TO_MARKDOWN_TIMEOUT_SECONDS", "45"))
 OPENAI_BATCH_SIZE = max(1, min(3, int(os.environ.get("OPENAI_BATCH_SIZE", "3"))))
 MIN_DESCRIPTION_CHARACTERS = 280
+MIN_DESCRIPTION_HAN_CHARACTERS = 160
+MIN_DESCRIPTION_SENTENCES = 3
 OPENAI_MAX_SEARCH_RESULTS = 8
 OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000
 OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000
@@ -134,8 +143,27 @@ OPENAI_RESPONSE_TEXT_FORMAT = {
 
 # ── Helpers ──
 
-def description_character_count(text):
-    return len(re.sub(r"\s", "", str(text or "")))
+def validate_description(text):
+    value = str(text or "")
+    compact = re.sub(r"\s", "", value)
+    sentences = [part.strip() for part in re.split(r"[。！？!?]+", value) if part.strip()]
+    unique_sentences = {re.sub(r"\s", "", part) for part in sentences}
+    stats = {
+        "characters": len(compact),
+        "han_characters": len(re.findall(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", compact)),
+        "sentences": len(sentences),
+        "unique_sentences": len(unique_sentences),
+    }
+    issues = []
+    if stats["characters"] < MIN_DESCRIPTION_CHARACTERS:
+        issues.append(f"under {MIN_DESCRIPTION_CHARACTERS} non-whitespace characters")
+    if stats["han_characters"] < MIN_DESCRIPTION_HAN_CHARACTERS:
+        issues.append(f"under {MIN_DESCRIPTION_HAN_CHARACTERS} Han characters")
+    if stats["sentences"] < MIN_DESCRIPTION_SENTENCES:
+        issues.append(f"under {MIN_DESCRIPTION_SENTENCES} sentences")
+    if stats["unique_sentences"] < stats["sentences"]:
+        issues.append("contains repeated sentences")
+    return issues, stats
 
 def verified_product_name(ticker, inferred_name):
     override = VERIFIED_PRODUCT_OVERRIDES.get(str(ticker or "").upper(), {})
@@ -1051,7 +1079,7 @@ def markdown_evidence_for_prompt(data):
 def build_openai_prompt(ticker_data):
     schema = """你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成兩件事：
 
-1. **繁中敘述**：用繁體中文寫一段約300至350字的ETF介紹，至少280個非空白字元，一整段流暢專業的敘述文（不要用條列式，也不要以搜尋標題加模板句充數）。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。不得捏造缺少的數字或細節，也不得用重述名稱、泛泛投資風險或空洞建議拉長篇幅。資料不足以寫成至少280字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收過短結果，不會補上備用短句。
+1. **繁中敘述**：用繁體中文寫一段約300至350字的ETF介紹，至少280個非空白字元、160個中文字，並寫成至少3句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。不得捏造缺少的數字或細節，也不得用重述名稱、泛泛投資風險或空洞建議拉長篇幅。資料不足以寫成至少280字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
 2. **分類校正**：檢查並校正以下欄位（如果預設分類有誤請修正）：
    - zacks_category: Commodities / Currency / Equity / Fixed Income
    - zacks_sector: 只有Fixed Income才需填，否則留空
@@ -1065,7 +1093,7 @@ def build_openai_prompt(ticker_data):
 
 3. **主題分類**：只根據本題提供的 ETF 名稱、追蹤指數、投資策略、搜尋摘要與正文證據，選出 0 到 5 個 topic_ids；禁止用外部知識推測成分股或曝險。沒有明確聚焦主題時回傳空陣列。品質因子(20)只在文字明確以 profitability、ROE、growth、safety 等品質因子作為選股標準時使用；「品質」「優質」「護城河」等一般用語不足以選擇。名稱或策略明確包含 REITs、不動產或房地產時選房地產循環(28)。若選擇 9、15、22、26 中任一項，必須同時選擇全部四項；這四項會佔用四個名額，最多僅能再選一項。只能使用下列 id：1=乾淨能源、2=電動/自駕車、3=區塊鏈、4=5G、5=大麻、6=機器人、7=雲端運算、8=網路安全、9=人工智慧、10=電商、11=基礎建設、12=網路、13=天然資源、14=黃金礦業、15=半導體、16=股利因子、17=動能因子、18=規模因子-等權重、19=波動率因子、20=品質因子、21=油氣、22=景氣擴張、23=景氣趨緩、24=景氣衰退、25=景氣復甦、26=生產力循環、27=通膨循環、28=房地產循環、29=美元循環、30=製造業循環、32=比特幣（現貨）、33=比特幣（期貨）、34=鋰電池/鋰礦、35=水資源、36=元宇宙、37=遊戲、38=金融科技、39=太空經濟、41=航運、42=核能/鈾礦、43=國防/軍工。
 
-請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 280 個非空白字元；缺乏來源支持的細節請省略，不得用搜尋標題或模板句代替研究敘述。
+請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 280 個非空白字元、160 個中文字和 3 句不重複的完整句子；缺乏來源支持的細節請省略，不得用搜尋標題或模板句代替研究敘述。
 只回覆符合指定 JSON schema 的內容，不要其他文字。"""
 
     blocks = ""
@@ -1127,8 +1155,9 @@ def call_openai(prompt):
             }
         raise RuntimeError(f"OpenAI API response did not contain output_text: {json.dumps(data)[:1200]}")
     except Exception as e:
-        print(f"  [error] OpenAI API: {e}", file=sys.stderr)
-        raise
+        message = _sanitize_openai_error(e)
+        print(f"  [error] OpenAI API: {message}", file=sys.stderr)
+        raise RuntimeError(message) from None
 
 
 def normalize_classification(openai, data):
@@ -1233,11 +1262,11 @@ def main():
             for item in batch_results:
                 if len(str(item.get("繁中名稱", "")).strip()) < 2:
                     raise RuntimeError(f"OpenAI omitted the official name for {item['ticker']}")
-                description_length = description_character_count(item.get("繁中敘述"))
-                if description_length < MIN_DESCRIPTION_CHARACTERS:
+                issues, description_stats = validate_description(item.get("繁中敘述"))
+                if issues:
                     raise RuntimeError(
-                        f"OpenAI description for {item['ticker']} has {description_length} non-whitespace characters; "
-                        f"minimum is {MIN_DESCRIPTION_CHARACTERS}"
+                        f"OpenAI description for {item['ticker']} failed quality checks: {', '.join(issues)}; "
+                        f"counts={description_stats}"
                     )
             openai_results.extend(batch_results)
             print(f"     ✅ 回傳 {len(batch_results)} 檔")
@@ -1260,11 +1289,11 @@ def main():
                            if re.sub(r"\.TW$", "", str(c.get("ticker", "")), flags=re.I).strip().upper() == d["ticker"]), None)
         if not openai:
             raise RuntimeError(f"OpenAI did not return a research record for {d['ticker']}; refusing to write partial CSV")
-        description_length = description_character_count(openai.get("繁中敘述"))
-        if description_length < MIN_DESCRIPTION_CHARACTERS:
+        issues, description_stats = validate_description(openai.get("繁中敘述"))
+        if issues:
             raise RuntimeError(
-                f"OpenAI description for {d['ticker']} has {description_length} non-whitespace characters; "
-                f"minimum is {MIN_DESCRIPTION_CHARACTERS}"
+                f"OpenAI description for {d['ticker']} failed quality checks: {', '.join(issues)}; "
+                f"counts={description_stats}"
             )
 
         cls = normalize_classification(openai, d)

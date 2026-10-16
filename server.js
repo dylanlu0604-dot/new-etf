@@ -19,6 +19,8 @@ const URL_TO_MARKDOWN_API = (process.env.URL_TO_MARKDOWN_API || "http://127.0.0.
 const URL_TO_MARKDOWN_TIMEOUT_MS = Number(process.env.URL_TO_MARKDOWN_TIMEOUT_MS || 45000);
 const OPENAI_BATCH_SIZE = Math.max(1, Math.min(3, Number(process.env.OPENAI_BATCH_SIZE || 3)));
 const MIN_DESCRIPTION_CHARACTERS = 280;
+const MIN_DESCRIPTION_HAN_CHARACTERS = 160;
+const MIN_DESCRIPTION_SENTENCES = 3;
 const OPENAI_MAX_SEARCH_RESULTS = 8;
 const OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000;
 const OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000;
@@ -217,8 +219,29 @@ function calculateOpenAIUsage(apiResponse) {
   };
 }
 
-function descriptionCharacterCount(text) {
-  return Array.from(String(text || '').replace(/\s/gu, '')).length;
+function sanitizeOpenAIError(message) {
+  let cleaned = String(message || '').replace(/(?:incorrect\s+)?api key provided:\s*\S+/giu, 'API key was rejected');
+  if (OPENAI_API_KEY) cleaned = cleaned.replaceAll(OPENAI_API_KEY, '[REDACTED]');
+  return cleaned;
+}
+
+function validateDescription(text) {
+  const value = String(text || '');
+  const compact = value.replace(/\s/gu, '');
+  const sentences = value.split(/[。！？!?]+/u).map((part) => part.trim()).filter(Boolean);
+  const uniqueSentences = new Set(sentences.map((part) => part.replace(/\s/gu, '')));
+  const stats = {
+    characters: Array.from(compact).length,
+    han_characters: (compact.match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/gu) || []).length,
+    sentences: sentences.length,
+    unique_sentences: uniqueSentences.size,
+  };
+  const issues = [];
+  if (stats.characters < MIN_DESCRIPTION_CHARACTERS) issues.push(`under ${MIN_DESCRIPTION_CHARACTERS} non-whitespace characters`);
+  if (stats.han_characters < MIN_DESCRIPTION_HAN_CHARACTERS) issues.push(`under ${MIN_DESCRIPTION_HAN_CHARACTERS} Han characters`);
+  if (stats.sentences < MIN_DESCRIPTION_SENTENCES) issues.push(`under ${MIN_DESCRIPTION_SENTENCES} sentences`);
+  if (stats.unique_sentences < stats.sentences) issues.push('contains repeated sentences');
+  return { issues, stats };
 }
 
 // ── TinyFish helpers ──
@@ -832,7 +855,7 @@ async function callOpenAI(prompt) {
   });
   const data = await resp.json();
   if (!resp.ok) {
-    const message = data?.error?.message || JSON.stringify(data).slice(0, 1200);
+    const message = sanitizeOpenAIError(data?.error?.message || JSON.stringify(data).slice(0, 1200));
     throw new Error(`OpenAI API HTTP ${resp.status}: ${message}`);
   }
   const text = data.output_text || (data.output || [])
@@ -1124,7 +1147,7 @@ function markdownEvidenceForPrompt(data) {
 function buildOpenAIPrompt(tickerData) {
   const schema = `你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成三件事：
 
-1. **繁中敘述**：用繁體中文寫一段約300至350字的ETF介紹，至少280個非空白字元，一整段流暢專業的敘述文（不要用條列式，也不要以搜尋標題加模板句充數）。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。不得捏造缺少的數字或細節，也不得用重述名稱、泛泛投資風險或空洞建議拉長篇幅。資料不足以寫成至少280字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收過短結果，不會補上備用短句。
+1. **繁中敘述**：用繁體中文寫一段約300至350字的ETF介紹，至少280個非空白字元、160個中文字，並寫成至少3句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。不得捏造缺少的數字或細節，也不得用重述名稱、泛泛投資風險或空洞建議拉長篇幅。資料不足以寫成至少280字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
 2. **分類校正**：檢查並校正以下欄位（如果預設分類有誤請修正）：
    - zacks_category: Commodities / Currency / Equity / Fixed Income
    - zacks_sector: 只有Fixed Income才需填，否則留空
@@ -1138,7 +1161,7 @@ function buildOpenAIPrompt(tickerData) {
 
 3. **主題分類**：只根據本題提供的 ETF 名稱、追蹤指數、投資策略、搜尋摘要與正文證據，選出 0 到 5 個 topic_ids；禁止用外部知識推測成分股或曝險。沒有明確聚焦主題時回傳空陣列。品質因子(20)只在文字明確以 profitability、ROE、growth、safety 等品質因子作為選股標準時使用；「品質」「優質」「護城河」等一般用語不足以選擇。名稱或策略明確包含 REITs、不動產或房地產時選房地產循環(28)。若選擇 9、15、22、26 中任一項，必須同時選擇全部四項；這四項會佔用四個名額，最多僅能再選一項。只能使用下列 id：1=乾淨能源、2=電動/自駕車、3=區塊鏈、4=5G、5=大麻、6=機器人、7=雲端運算、8=網路安全、9=人工智慧、10=電商、11=基礎建設、12=網路、13=天然資源、14=黃金礦業、15=半導體、16=股利因子、17=動能因子、18=規模因子-等權重、19=波動率因子、20=品質因子、21=油氣、22=景氣擴張、23=景氣趨緩、24=景氣衰退、25=景氣復甦、26=生產力循環、27=通膨循環、28=房地產循環、29=美元循環、30=製造業循環、32=比特幣（現貨）、33=比特幣（期貨）、34=鋰電池/鋰礦、35=水資源、36=元宇宙、37=遊戲、38=金融科技、39=太空經濟、41=航運、42=核能/鈾礦、43=國防/軍工。
 
-請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 280 個非空白字元；缺乏來源支持的細節請省略，不得用搜尋標題或模板句代替研究敘述。
+請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 280 個非空白字元、160 個中文字和 3 句不重複的完整句子；缺乏來源支持的細節請省略，不得用搜尋標題或模板句代替研究敘述。
 只回覆符合指定 JSON schema 的內容，不要其他文字。`;
 
   let tickerBlocks = "";
@@ -1218,9 +1241,9 @@ app.post("/api/research", async (req, res) => {
           if (String(item.繁中名稱 || "").trim().length < 2) {
             throw new Error(`OpenAI omitted the official name for ${item.ticker}`);
           }
-          const descriptionLength = descriptionCharacterCount(item.繁中敘述);
-          if (descriptionLength < MIN_DESCRIPTION_CHARACTERS) {
-            throw new Error(`OpenAI description for ${item.ticker} has ${descriptionLength} non-whitespace characters; minimum is ${MIN_DESCRIPTION_CHARACTERS}`);
+          const quality = validateDescription(item.繁中敘述);
+          if (quality.issues.length) {
+            throw new Error(`OpenAI description for ${item.ticker} failed quality checks: ${quality.issues.join(', ')}; counts=${JSON.stringify(quality.stats)}`);
           }
         }
         openaiResults = openaiResults.concat(batchResults);
@@ -1253,7 +1276,8 @@ app.post("/api/research", async (req, res) => {
       const ct = String(c.ticker || "").replace(/\.TW$/i, "").trim().toUpperCase();
       return ct === d.ticker;
     });
-    if (!openai || descriptionCharacterCount(openai.繁中敘述) < MIN_DESCRIPTION_CHARACTERS) {
+    const quality = validateDescription(openai?.繁中敘述);
+    if (!openai || quality.issues.length) {
       return res.status(502).json({ error: `OpenAI returned no complete research record for ${d.ticker}` });
     }
 
