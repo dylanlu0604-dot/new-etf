@@ -42,10 +42,10 @@ jobs:
 
       - name: Run ETF research for new_list
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
           URL_TO_MARKDOWN_FALLBACK: tinyfish
-          CLAUDE_BATCH_SIZE: "3"
+          OPENAI_BATCH_SIZE: "3"
         run: |
           new_list="$(tr -d '\r\n' < artifacts/new_list.txt)"
           if [ -z "$new_list" ]; then

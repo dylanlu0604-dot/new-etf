@@ -387,7 +387,7 @@
 <script>
 let currentResults = [];
 let currentMeta = null;
-let sessionClaudeUsage = {
+let sessionOpenAIUsage = {
   requests: 0,
   input_tokens: 0,
   output_tokens: 0,
@@ -432,8 +432,8 @@ async function doResearch() {
     if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
     currentResults = data.results || [];
     currentMeta = data.meta || null;
-    sessionClaudeUsage = addUsage(sessionClaudeUsage, currentMeta?.claude_usage);
-    if (currentMeta) currentMeta.claude_session_usage = sessionClaudeUsage;
+    sessionOpenAIUsage = addUsage(sessionOpenAIUsage, currentMeta?.openai_usage);
+    if (currentMeta) currentMeta.openai_session_usage = sessionOpenAIUsage;
     renderTable(currentResults, currentMeta);
     const searchCount = currentMeta?.tinyfish_search_calls ?? tickers.length;
     statusText.textContent = `完成！共 ${currentResults.length} 檔 ETF，TinyFish 搜尋 ${searchCount} 次`;
@@ -528,17 +528,17 @@ function usageBlock(label, usage) {
 }
 
 function renderUsagePanel(meta) {
-  const current = meta?.claude_usage || {};
-  const cumulative = meta?.claude_session_usage || sessionClaudeUsage;
-  const pricing = meta?.claude_pricing || {};
-  const model = pricing.model || "claude-haiku-4-5-20251001";
-  const inputPrice = pricing.input_usd_per_million_tokens ?? 1;
-  const outputPrice = pricing.output_usd_per_million_tokens ?? 5;
+  const current = meta?.openai_usage || {};
+  const cumulative = meta?.openai_session_usage || sessionOpenAIUsage;
+  const pricing = meta?.openai_pricing || {};
+  const model = pricing.model || "gpt-6-luna";
+  const inputPrice = pricing.input_usd_per_million_tokens ?? 0.10;
+  const outputPrice = pricing.output_usd_per_million_tokens ?? 0.50;
 
   return `
     <section class="usage-panel">
       <div class="usage-heading">
-        <span>Claude 使用量與估算費用</span>
+        <span>OpenAI 使用量與估算費用</span>
         <span class="usage-model">${escapeHtml(model)}</span>
       </div>
       <div class="usage-grid">
@@ -606,7 +606,7 @@ function renderTable(results, meta) {
   let html = usagePanel + `
     <div class="toolbar">
       <span class="count">${results.length} 檔 ETF
-        ${meta ? `<span class="meta-note">TinyFish 搜尋 ${meta.tinyfish_search_calls || 0} 次 · URL to Markdown ${meta.url_to_markdown_pages || 0}/${meta.url_to_markdown_calls || 0} 頁 · Claude ${meta.claude_calls || 0} 次</span>` : ""}
+        ${meta ? `<span class="meta-note">TinyFish 搜尋 ${meta.tinyfish_search_calls || 0} 次 · URL to Markdown ${meta.url_to_markdown_pages || 0}/${meta.url_to_markdown_calls || 0} 頁 · OpenAI ${meta.openai_calls || 0} 次</span>` : ""}
       </span>
       <button class="btn btn-export" onclick="exportCSV()">匯出 CSV</button>
     </div>
