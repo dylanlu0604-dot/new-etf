@@ -1307,7 +1307,9 @@ def call_openai(prompt, response_format=OPENAI_RESPONSE_TEXT_FORMAT):
 def normalize_classification(openai, data):
     pre = data["pre"]
     verified = data.get("verifiedProduct", {})
-    name_rules = pre_classify(data["ticker"], (openai or {}).get("繁中名稱") or data["etfName"])
+    classification_name = (verified.get("name") or (openai or {}).get("繁中名稱")
+                           or data["etfName"])
+    name_rules = pre_classify(data["ticker"], classification_name)
     rule_category = (verified.get("zacksCategory") or
                      (pre["zacksCategory"] if pre["zacksCategory"] != "Equity"
                       else name_rules["zacksCategory"]))
@@ -1317,7 +1319,7 @@ def normalize_classification(openai, data):
     rule_currency = pre.get("currency") or name_rules["currency"]
     has_explicit_korea_region = bool(re.search(
         r"台日韓|韓國|korea|kospi",
-        (openai or {}).get("繁中名稱") or data["etfName"], re.I))
+        classification_name, re.I))
     cat = (rule_category if rule_category != "Equity"
            else allowed_value(openai.get("zacks_category") if openai else None,
                               "zacks_category", rule_category))
@@ -1417,8 +1419,13 @@ def main():
                         "issues": [f"returned tickers {returned_tickers}; expected exactly {expected_tickers}"],
                     })
                 else:
+                    batch_data_by_ticker = {d["ticker"]: d for d in batch}
                     for item in candidate_results:
                         ticker = str(item.get("ticker", "")).strip().upper()
+                        source_data = batch_data_by_ticker.get(ticker)
+                        if source_data:
+                            # Normalize deterministic classifications before validating or auditing.
+                            item.update(normalize_classification(item, source_data))
                         if len(str(item.get("繁中名稱", "")).strip()) < 2:
                             failures.append({"ticker": ticker, "issues": ["official name is missing"]})
                             continue
