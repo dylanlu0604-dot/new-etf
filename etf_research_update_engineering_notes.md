@@ -175,6 +175,7 @@ assert research.normalize_topic_labels([15]) == '半導體'
 assert research.normalize_topic_labels([9]) == '人工智慧'
 assert research.normalize_topic_labels([9, 15, 22, 26]) == '人工智慧、半導體、景氣擴張、生產力循環'
 assert research.pre_classify('009829', '韓國 KOSPI 50 ETF')['regionSpecific'] == 'South Korea'
+assert research.pre_classify('009829', '韓國 KOSPI 50 ETF')['regionGeneral'] == 'Emerging Asia Pacific'
 PY
 ```
 

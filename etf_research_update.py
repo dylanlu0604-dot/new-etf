@@ -104,10 +104,10 @@ TOPIC_LABELS = {
     39: "太空經濟", 41: "航運", 42: "核能/鈾礦", 43: "國防/軍工",
 }
 REGION_SPECIFIC_BY_GENERAL = {
-    "Developed Asia Pacific": {"Broad", "Japan", "South Korea"},
+    "Developed Asia Pacific": {"Broad", "Japan"},
     "Developed Europe": {"Broad"},
     "Developed Markets": {"Broad", "Japan", "U.S."},
-    "Emerging Asia Pacific": {"Broad", "China", "ex-China", "India", "Taiwan", "Vietnam"},
+    "Emerging Asia Pacific": {"Broad", "China", "ex-China", "India", "South Korea", "Taiwan", "Vietnam"},
     "Emerging Markets": {"Broad", "China", "ex-China", "India", "Vietnam"},
     "Global": {"Broad"},
     "North America": {"Broad", "U.S."},
@@ -248,11 +248,11 @@ def normalize_region_pair(general, specific, fallback_general, fallback_specific
     general = allowed_value(general, "region_general", fallback_general)
     specific = allowed_value(specific, "region_specific", fallback_specific)
     if specific == "South Korea":
-        return "Developed Asia Pacific", "South Korea"
+        return "Emerging Asia Pacific", "South Korea"
     if specific in REGION_SPECIFIC_BY_GENERAL.get(general, set()):
         return general, specific
     if fallback_specific == "South Korea":
-        return "Developed Asia Pacific", "South Korea"
+        return "Emerging Asia Pacific", "South Korea"
     if fallback_specific in REGION_SPECIFIC_BY_GENERAL.get(fallback_general, set()):
         return fallback_general, fallback_specific
     return "Global", "Broad"
@@ -909,7 +909,7 @@ def pre_classify(ticker, name):
     elif re.search(r"日本|nikkei|topix", name, re.I):
         gen, spec = "Developed Asia Pacific", "Japan"
     elif re.search(r"韓國|korea|kospi", name, re.I):
-        gen, spec = "Developed Asia Pacific", "South Korea"
+        gen, spec = "Emerging Asia Pacific", "South Korea"
     elif re.search(r"中國|陸股|A股|滬深|china", name, re.I):
         gen, spec = "Emerging Asia Pacific", "China"
     elif re.search(r"印度|india", name, re.I):
@@ -1198,6 +1198,7 @@ def build_openai_prompt(ticker_data):
    - zacks_sector: 只有Fixed Income才需填，否則留空
    - region_general: Developed Asia Pacific / Developed Europe / Developed Markets / Emerging Asia Pacific / Emerging Markets / Global / North America
    - region_specific: Broad / China / ex-China / India / Japan / South Korea / Taiwan / U.S. / Vietnam
+   - 主要投資韓國市場的 ETF，區域配對使用 Emerging Asia Pacific / South Korea；台日韓等跨國 ETF 依實際投資範圍選 Broad。這是本表採用的市場分類，不能依國家所得水準自行改成 Developed Asia Pacific。
    - commodity_type: 只有Commodities才需填，否則留空
    - currency: 只有Currency才需填，否則留空
    - leveraged: Yes / No
@@ -1286,7 +1287,6 @@ def validate_openai_fact_check(expected_tickers, audit_results):
 def call_openai(prompt, response_format=OPENAI_RESPONSE_TEXT_FORMAT):
     if not OPENAI_API_KEY or OPENAI_API_KEY == "your-api-key-here":
         raise RuntimeError("OPENAI_API_KEY is not configured")
-    print("  [debug] Calling OpenAI API", file=sys.stderr)
     try:
         data = _post_json(
             "https://api.openai.com/v1/responses",
@@ -1413,11 +1413,11 @@ def main():
         total_cost = 0
         openai_results = []
         num_batches = (len(valid) + BATCH_SIZE - 1) // BATCH_SIZE
-        print(f"\n🤖 呼叫 OpenAI ({OPENAI_MODEL}) 處理 {len(valid)} 檔 ETF (分 {num_batches} 批)...")
+        print(f"\n🤖 呼叫 OpenAI ({OPENAI_MODEL}) 處理 {len(valid)} 檔 ETF (分 {num_batches} 批)...", flush=True)
         for bi in range(0, len(valid), BATCH_SIZE):
             batch = valid[bi:bi + BATCH_SIZE]
             batch_num = bi // BATCH_SIZE + 1
-            print(f"  📦 批次 {batch_num}/{num_batches}: {[d['ticker'] for d in batch]}")
+            print(f"  📦 批次 {batch_num}/{num_batches}: {[d['ticker'] for d in batch]}", flush=True)
             expected_tickers = [d["ticker"] for d in batch]
             original_prompt = build_openai_prompt(batch)
             prompt = original_prompt
@@ -1466,14 +1466,18 @@ def main():
                     failures.extend(validate_openai_fact_check(expected_tickers, audit.get("results")))
                 if not failures:
                     batch_results = candidate_results
-                    print("     ✅ Luna fact-check approved all fields")
+                    print("     ✅ Luna fact-check approved all fields", flush=True)
                     break
                 if attempt >= MAX_OPENAI_QUALITY_RETRIES:
                     raise RuntimeError(
                         f"OpenAI batch {batch_num} still failed quality checks after "
                         f"{MAX_OPENAI_QUALITY_RETRIES} retries: {json.dumps(failures, ensure_ascii=False)}"
                     )
-                print(f"     ⚠️ 品質驗收未通過，根據具體原因重生整批（重試 {attempt + 1}/{MAX_OPENAI_QUALITY_RETRIES}）")
+                failure_summary = json.dumps(
+                    [{"ticker": failure["ticker"], "issues": failure["issues"]} for failure in failures],
+                    ensure_ascii=False)
+                print(f"     ⚠️ 品質驗收未通過（重試 {attempt + 1}/{MAX_OPENAI_QUALITY_RETRIES}）："
+                      f"{failure_summary[:1500]}", flush=True)
                 prompt = build_openai_quality_retry_prompt(original_prompt, candidate_results, failures)
             openai_results.extend(batch_results)
             print(f"     ✅ 回傳 {len(batch_results)} 檔")

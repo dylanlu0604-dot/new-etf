@@ -25,10 +25,10 @@ const OPENAI_MAX_SEARCH_RESULTS = 8;
 const OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000;
 const OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000;
 const REGION_SPECIFIC_BY_GENERAL = {
-  "Developed Asia Pacific": new Set(["Broad", "Japan", "South Korea"]),
+  "Developed Asia Pacific": new Set(["Broad", "Japan"]),
   "Developed Europe": new Set(["Broad"]),
   "Developed Markets": new Set(["Broad", "Japan", "U.S."]),
-  "Emerging Asia Pacific": new Set(["Broad", "China", "ex-China", "India", "Taiwan", "Vietnam"]),
+  "Emerging Asia Pacific": new Set(["Broad", "China", "ex-China", "India", "South Korea", "Taiwan", "Vietnam"]),
   "Emerging Markets": new Set(["Broad", "China", "ex-China", "India", "Vietnam"]),
   Global: new Set(["Broad"]),
   "North America": new Set(["Broad", "U.S."]),
@@ -154,9 +154,9 @@ function allowedValue(value, field, fallback = "") {
 function normalizeRegionPair(general, specific, fallbackGeneral, fallbackSpecific) {
   const validGeneral = allowedValue(general, "region_general", fallbackGeneral);
   const validSpecific = allowedValue(specific, "region_specific", fallbackSpecific);
-  if (validSpecific === "South Korea") return ["Developed Asia Pacific", "South Korea"];
+  if (validSpecific === "South Korea") return ["Emerging Asia Pacific", "South Korea"];
   if (REGION_SPECIFIC_BY_GENERAL[validGeneral]?.has(validSpecific)) return [validGeneral, validSpecific];
-  if (fallbackSpecific === "South Korea") return ["Developed Asia Pacific", "South Korea"];
+  if (fallbackSpecific === "South Korea") return ["Emerging Asia Pacific", "South Korea"];
   if (REGION_SPECIFIC_BY_GENERAL[fallbackGeneral]?.has(fallbackSpecific)) return [fallbackGeneral, fallbackSpecific];
   return ["Global", "Broad"];
 }
@@ -210,14 +210,15 @@ function applyVerifiedProductOverride(ticker, pre) {
 
 function normalizeClassification(openai, data) {
   const verified = data.verifiedProduct || {};
-  const nameRules = preClassify(data.ticker, openai?.繁中名稱 || data.etfName);
+  const classificationName = verified.name || openai?.繁中名稱 || data.etfName;
+  const nameRules = preClassify(data.ticker, classificationName);
   const ruleCategory = verified.zacksCategory || (data.pre.zacksCategory !== "Equity"
     ? data.pre.zacksCategory
     : nameRules.zacksCategory);
   const ruleZacksSector = verified.zacksSector || data.pre.zacksSector || nameRules.zacksSector;
   const ruleCommodityType = data.pre.commodityType || nameRules.commodityType;
   const ruleCurrency = data.pre.currency || nameRules.currency;
-  const hasExplicitKoreaRegion = /台日韓|韓國|korea|kospi/i.test(openai?.繁中名稱 || data.etfName);
+  const hasExplicitKoreaRegion = /台日韓|韓國|korea|kospi/i.test(classificationName);
 
   // Fixed-income, commodity and currency names are explicit enough to use as
   // a guardrail when the model returns an otherwise valid but wrong category.
@@ -888,7 +889,7 @@ function preClassify(ticker, name) {
   else if (/全球|global/i.test(name)) { regionGeneral = "Global"; regionSpecific = "Broad"; }
   else if (/美國|美股|S&P|Nasdaq|道瓊|標普|費城/i.test(name)) { regionGeneral = "North America"; regionSpecific = "U.S."; }
   else if (/日本|nikkei|topix/i.test(name)) { regionGeneral = "Developed Asia Pacific"; regionSpecific = "Japan"; }
-  else if (/韓國|korea|kospi/i.test(name)) { regionGeneral = "Developed Asia Pacific"; regionSpecific = "South Korea"; }
+  else if (/韓國|korea|kospi/i.test(name)) { regionGeneral = "Emerging Asia Pacific"; regionSpecific = "South Korea"; }
   else if (/中國|陸股|A股|滬深|china/i.test(name)) { regionGeneral = "Emerging Asia Pacific"; regionSpecific = "China"; }
   else if (/印度|india/i.test(name)) { regionGeneral = "Emerging Asia Pacific"; regionSpecific = "India"; }
   else if (/越南|vietnam/i.test(name)) { regionGeneral = "Emerging Asia Pacific"; regionSpecific = "Vietnam"; }
@@ -1223,6 +1224,7 @@ function buildOpenAIPrompt(tickerData) {
    - zacks_sector: 只有Fixed Income才需填，否則留空
    - region_general: Developed Asia Pacific / Developed Europe / Developed Markets / Emerging Asia Pacific / Emerging Markets / Global / North America
    - region_specific: Broad / China / ex-China / India / Japan / South Korea / Taiwan / U.S. / Vietnam
+   - 主要投資韓國市場的 ETF，區域配對使用 Emerging Asia Pacific / South Korea；台日韓等跨國 ETF 依實際投資範圍選 Broad。這是本表採用的市場分類，不能依國家所得水準自行改成 Developed Asia Pacific。
    - commodity_type: 只有Commodities才需填，否則留空
    - currency: 只有Currency才需填，否則留空
    - leveraged: Yes / No
@@ -1350,7 +1352,11 @@ app.post("/api/research", async (req, res) => {
               issues: [`returned tickers ${JSON.stringify(returnedTickers)}; expected exactly ${JSON.stringify(expectedTickers)}`],
             });
           } else {
+            const batchDataByTicker = new Map(batch.map(data => [data.ticker, data]));
             for (const item of candidateResults) {
+              const ticker = String(item.ticker || "").trim().toUpperCase();
+              const sourceData = batchDataByTicker.get(ticker);
+              if (sourceData) Object.assign(item, normalizeClassification(item, sourceData));
               if (String(item.繁中名稱 || "").trim().length < 2) {
                 failures.push({ ticker: item.ticker, issues: ["official name is missing"] });
                 continue;
