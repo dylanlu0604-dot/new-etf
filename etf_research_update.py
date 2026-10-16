@@ -148,8 +148,8 @@ def validate_description(text):
     compact = re.sub(r"\s", "", value)
     sentences = [part.strip() for part in re.split(r"[。！？!?]+", value) if part.strip()]
     unique_sentences = {re.sub(r"\s", "", part) for part in sentences}
-    date_pattern = re.compile(r"(?:\d{1,2}\s*月\s*\d{1,2}\s*日|(?<!\d)\d{1,2}[/-]\d{1,2}(?!\d))")
-    year_pattern = re.compile(r"(?:\d{4}\s*年|同年|今年|當年|每年)")
+    date_pattern = re.compile(r"(?:\d{1,2}\s*月\s*\d{1,2}\s*日|(?<!\d)\d{1,2}/\d{1,2}(?!\d))")
+    year_pattern = re.compile(r"(?:\d{4}\s*(?:年|[/\-])|同年|今年|當年|每年)")
     unqualified_date_sentences = [
         sentence for sentence in sentences
         if date_pattern.search(sentence) and not year_pattern.search(sentence)
@@ -160,7 +160,10 @@ def validate_description(text):
         "sentences": len(sentences),
         "unique_sentences": len(unique_sentences),
         "unqualified_dates": len(unqualified_date_sentences),
-        "unqualified_date_examples": [sentence[:120] for sentence in unqualified_date_sentences[:3]],
+        "unqualified_date_examples": [
+            {"dates": date_pattern.findall(sentence), "sentence": sentence[:120]}
+            for sentence in unqualified_date_sentences[:3]
+        ],
     }
     issues = []
     if stats["characters"] < MIN_DESCRIPTION_CHARACTERS:
