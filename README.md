@@ -21,7 +21,7 @@ collector 只使用 MoneyDJ 的靜態表格，不再依賴 WantGoo、Playwright 
 - `TINYFISH_API_KEY`：TinyFish CLI key，用於 ETF 研究的搜尋與全文抓取。
 
 程式碼不含任何 API key；本機可以放在 `etf-app/.env`，但該檔案已列入 `.gitignore`。
-研究使用 OpenAI Responses API，預設模型為 `gpt-5.4-mini`；可用 `OPENAI_MODEL` 覆寫模型名稱。GitHub Actions 需在 Secrets 中設定 `OPENAI_API_KEY`，否則研究步驟會失敗並停止，不會提交備援短句。
+研究使用 OpenAI Responses API，預設模型為 `gpt-6-luna`；可用 `OPENAI_MODEL` 覆寫模型名稱。GitHub Actions 需在 Secrets 中設定 `OPENAI_API_KEY`，否則研究步驟會失敗並停止，不會提交備援短句。
 
 ## 本機執行
 

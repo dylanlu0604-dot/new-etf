@@ -531,9 +531,9 @@ function renderUsagePanel(meta) {
   const current = meta?.openai_usage || {};
   const cumulative = meta?.openai_session_usage || sessionOpenAIUsage;
   const pricing = meta?.openai_pricing || {};
-  const model = pricing.model || "gpt-5.4-mini";
-  const inputPrice = pricing.input_usd_per_million_tokens ?? 0.75;
-  const outputPrice = pricing.output_usd_per_million_tokens ?? 4.5;
+  const model = pricing.model || "gpt-6-luna";
+  const inputPrice = pricing.input_usd_per_million_tokens ?? 0.10;
+  const outputPrice = pricing.output_usd_per_million_tokens ?? 0.50;
 
   return `
     <section class="usage-panel">

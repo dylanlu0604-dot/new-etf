@@ -10,10 +10,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-6-luna";
 const OPENAI_PRICING = {
-  inputUsdPerMillion: Number(process.env.OPENAI_INPUT_PRICE_PER_MILLION_USD || 0.75),
-  outputUsdPerMillion: Number(process.env.OPENAI_OUTPUT_PRICE_PER_MILLION_USD || 4.5),
+  inputUsdPerMillion: Number(process.env.OPENAI_INPUT_PRICE_PER_MILLION_USD || 0.10),
+  outputUsdPerMillion: Number(process.env.OPENAI_OUTPUT_PRICE_PER_MILLION_USD || 0.50),
 };
 const URL_TO_MARKDOWN_API = (process.env.URL_TO_MARKDOWN_API || "http://127.0.0.1:8000").replace(/\/+$/, "");
 const URL_TO_MARKDOWN_TIMEOUT_MS = Number(process.env.URL_TO_MARKDOWN_TIMEOUT_MS || 45000);

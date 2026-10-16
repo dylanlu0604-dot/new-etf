@@ -42,9 +42,9 @@ if not OPENAI_API_KEY:
             if line.startswith("OPENAI_API_KEY="):
                 OPENAI_API_KEY = line.split("=", 1)[1].strip()
 
-OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.4-mini")
-OPENAI_INPUT_PRICE = float(os.environ.get("OPENAI_INPUT_PRICE_PER_MILLION_USD", "0.75"))
-OPENAI_OUTPUT_PRICE = float(os.environ.get("OPENAI_OUTPUT_PRICE_PER_MILLION_USD", "4.5"))
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-6-luna")
+OPENAI_INPUT_PRICE = float(os.environ.get("OPENAI_INPUT_PRICE_PER_MILLION_USD", "0.10"))
+OPENAI_OUTPUT_PRICE = float(os.environ.get("OPENAI_OUTPUT_PRICE_PER_MILLION_USD", "0.50"))
 URL_TO_MARKDOWN_API = os.environ.get("URL_TO_MARKDOWN_API", "http://127.0.0.1:8000").rstrip("/")
 URL_TO_MARKDOWN_TIMEOUT = int(os.environ.get("URL_TO_MARKDOWN_TIMEOUT_SECONDS", "45"))
 URL_TO_MARKDOWN_FALLBACK = os.environ.get("URL_TO_MARKDOWN_FALLBACK", "").strip().lower()
