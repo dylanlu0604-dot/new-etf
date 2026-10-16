@@ -2,7 +2,7 @@
 
 ## 目的
 
-`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-6-luna`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。敘述目標為約 400 至 500 字，至少 360 個非空白字元、220 個中文字及 4 句不重複的完整句子，並清楚區分實際持倉、指數成分股、募集時預擬配置與例示標的；早於基金成立日的持倉資料不可描述為實際持倉，不配息基金不得推薦給以領息為目標的投資人。品質驗收失敗時以具體原因重試兩次，仍未達標就拒絕輸出。API 錯誤日誌會遮蔽金鑰內容。
+`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-6-luna`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。敘述目標為約 400 至 500 字，至少 360 個非空白字元、220 個中文字及 4 句不重複的完整句子，並清楚區分實際持倉、指數成分股、募集時預擬配置與例示標的；早於基金成立日的持倉資料不可描述為實際持倉，不配息基金不得推薦給以領息為目標的投資人。字數、句數與欄位一致性檢查通過後，Luna 會再根據原始來源查核敘述及所有分類欄位；查核失敗時整筆資料重生並再次查核，最多重試兩次，仍未通過就拒絕輸出。API 錯誤日誌會遮蔽金鑰內容。
 
 此檔案與 `etf_research.py` 採用相同研究、分類、風險驗證與模型呼叫流程。唯一的輸出差異是移除了下列 CSV 欄位：
 
@@ -124,16 +124,16 @@ Fixed Income / Investment Grade Corporate Bond ETFs / Global / Broad
 
 ## 主題標籤
 
-`主題標籤` 由同一次 OpenAI 呼叫的 `topic_ids` 產生，不會增加額外的模型請求。主題 taxonomy 與判斷規則參考 `etf_topic_classification_prompt.md`：模型只能使用固定的 41 個 ID、可不選主題、最多五個，且不得因外部知識推斷成分股或曝險。
+`主題標籤` 由同一次 OpenAI 呼叫的 `topic_ids` 產生，不會增加額外的模型請求。模型只能使用固定的 41 個 ID、可不選主題、最多五個，且不得因外部知識推斷成分股或曝險；每個標籤都必須各自有來源支持。
 
 模型輸出後必須由 `normalize_topic_labels()` 做程式端後處理：
 
 1. 僅保留 `TOPIC_LABELS` 中的整數 ID，丟棄無效 ID、布林值與格式錯誤的值。
 2. 去除重複 ID，保留首次出現的順序。
-3. 若命中人工智慧(9)、半導體(15)、景氣擴張(22)、生產力循環(26)任一項，補齊完整四項；綁定群組優先保留，最多只再保留一個其他標籤。
+3. 不會因為其中一個主題被選中，就推導或補入其他主題；人工智慧、半導體、景氣擴張與生產力循環各自需要獨立來源支持。
 4. 最多保留五個 ID，映射為繁中名稱後用 `、` 串接；沒有有效 ID 時輸出空字串。
 
-例如模型回傳 `[1, 15]`，CSV 中的結果為 `半導體、人工智慧、景氣擴張、生產力循環、乾淨能源`。這個後處理是防線的一部分，不可只信任模型已遵守綁定與 enum 規則。
+例如模型回傳 `[1, 15]`，CSV 中的結果只會是 `乾淨能源、半導體`；程式不會擅自擴充主題。
 
 ## 輸出欄位
 
@@ -171,7 +171,10 @@ print(research.CSV_COLUMNS)
 assert '繁中名稱' not in research.CSV_COLUMNS
 assert 'leveraged' not in research.CSV_COLUMNS
 assert 'actively_managed' not in research.CSV_COLUMNS
-assert research.normalize_topic_labels([15]) == '半導體、人工智慧、景氣擴張、生產力循環'
+assert research.normalize_topic_labels([15]) == '半導體'
+assert research.normalize_topic_labels([9]) == '人工智慧'
+assert research.normalize_topic_labels([9, 15, 22, 26]) == '人工智慧、半導體、景氣擴張、生產力循環'
+assert research.pre_classify('009829', '韓國 KOSPI 50 ETF')['regionSpecific'] == 'South Korea'
 PY
 ```
 
