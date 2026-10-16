@@ -231,14 +231,15 @@ function validateDescription(text) {
   const sentences = value.split(/[。！？!?]+/u).map((part) => part.trim()).filter(Boolean);
   const uniqueSentences = new Set(sentences.map((part) => part.replace(/\s/gu, '')));
   const datePattern = /(?:\d{1,2}\s*月\s*\d{1,2}\s*日|(?<!\d)\d{1,2}[/-]\d{1,2}(?!\d))/u;
-  const yearPattern = /(?:\d{4}\s*年|同年|今年|當年)/u;
-  const unqualifiedDates = sentences.filter((sentence) => datePattern.test(sentence) && !yearPattern.test(sentence)).length;
+  const yearPattern = /(?:\d{4}\s*年|同年|今年|當年|每年)/u;
+  const unqualifiedDateSentences = sentences.filter((sentence) => datePattern.test(sentence) && !yearPattern.test(sentence));
   const stats = {
     characters: Array.from(compact).length,
     han_characters: (compact.match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/gu) || []).length,
     sentences: sentences.length,
     unique_sentences: uniqueSentences.size,
-    unqualified_dates: unqualifiedDates,
+    unqualified_dates: unqualifiedDateSentences.length,
+    unqualified_date_examples: unqualifiedDateSentences.slice(0, 3).map((sentence) => sentence.slice(0, 120)),
   };
   const issues = [];
   if (stats.characters < MIN_DESCRIPTION_CHARACTERS) issues.push(`under ${MIN_DESCRIPTION_CHARACTERS} non-whitespace characters`);
