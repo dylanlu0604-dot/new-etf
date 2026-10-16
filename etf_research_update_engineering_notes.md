@@ -2,7 +2,7 @@
 
 ## 目的
 
-`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 Claude Sonnet 5 產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。
+`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-5.4-mini`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。
 
 此檔案與 `etf_research.py` 採用相同研究、分類、風險驗證與模型呼叫流程。唯一的輸出差異是移除了下列 CSV 欄位：
 
@@ -10,7 +10,7 @@
 - `leveraged`
 - `actively_managed`
 
-這三個欄位仍保留在內部資料模型與 Claude 回應中。它們協助名稱正規化與分類校正，但會在寫入 CSV 時被忽略；這可縮減下游資料表欄位，而不改變研究邏輯。
+這三個欄位仍保留在內部資料模型與 OpenAI 回應中。它們協助名稱正規化與分類校正，但會在寫入 CSV 時被忽略；這可縮減下游資料表欄位，而不改變研究邏輯。
 
 ## 執行方式
 
@@ -29,14 +29,15 @@ python3 etf_research_update.py -o etf_update_output.csv 00405A 006203 009827
 | Python 3 | 執行 CLI | 系統 Python 3 |
 | TinyFish CLI | 搜尋 ETF 與風險等級來源 | `tinyfish` 需已登入或可使用 API key |
 | URL-to-Markdown 服務 | 取得選定網址的正文 | `URL_TO_MARKDOWN_API`，預設 `http://127.0.0.1:8000` |
-| Anthropic API | 產生繁中敘述與分類建議 | `ANTHROPIC_API_KEY` 環境變數或同資料夾 `.env` |
+| OpenAI API | 產生繁中敘述與分類建議 | `OPENAI_API_KEY` 環境變數或同資料夾 `.env` |
 
 可選環境變數：
 
 ```bash
-export CLAUDE_INPUT_PRICE_PER_MILLION_USD=2
-export CLAUDE_OUTPUT_PRICE_PER_MILLION_USD=10
-export CLAUDE_BATCH_SIZE=3
+export OPENAI_MODEL=gpt-5.4-mini
+export OPENAI_INPUT_PRICE_PER_MILLION_USD=0.75
+export OPENAI_OUTPUT_PRICE_PER_MILLION_USD=4.5
+export OPENAI_BATCH_SIZE=3
 export URL_TO_MARKDOWN_TIMEOUT_SECONDS=45
 ```
 
@@ -79,7 +80,7 @@ tinyfish search query <query> --language zh-TW
 1. 先執行 StockFeel 定向查詢：`"<ticker>" ETF stockfeel 股感 site:stockfeel.com.tw`。找不到符合 ticker 的文章時，改用不含 `site:` 的 StockFeel 備援查詢。
 2. 接著執行原始 ETF 查詢，優先取得基金基本資料與風險報酬等級；若可用來源不足五筆，依序改用較寬鬆的 ETF 查詢。
 3. 結果挑選時偏好名稱或網址含相同 ticker 的基金公司、交易所、基金資料頁與可信財經來源。社群、影音與 `cmoney.tw` 等網址不會進入 URL-to-Markdown 全文擷取清單。
-4. 正常情況下保留一個 StockFeel URL 加上最多五個其他來源 URL，合計最多六個。這些 URL 會交給 URL-to-Markdown；TinyFish 搜尋摘要則保留給風險判斷與 Claude prompt。
+4. 正常情況下保留一個 StockFeel URL 加上最多五個其他來源 URL，合計最多六個。這些 URL 會交給 URL-to-Markdown；TinyFish 搜尋摘要則保留給風險判斷與 OpenAI prompt。
 5. 若尚未找到有效 RR 值，才以正式基金名稱及 ticker 追加 TinyFish 風險查詢，並只接受能辨識該基金的明確 RR 證據。
 
 ## 資料流程
@@ -92,14 +93,14 @@ tinyfish search query <query> --language zh-TW
 4. 對最多六個 URL 呼叫 URL-to-Markdown，保留正文與擷取狀態。
 5. 從搜尋摘要與全文中抽取可驗證的風險報酬等級；若未取得，才以基金名稱或 ticker 補查風險來源，必要時取得補查頁面正文。
 6. 以產品名稱規則建立初步類別、產業、區域、商品類型、貨幣、槓桿與主動管理判斷。
-7. 將每檔最多八筆搜尋摘要、每頁最多 3,000 字元且每檔最多 9,000 字元的正文證據送至 Claude。Claude 每批最多處理三檔。
-8. Claude 同時回傳 ETF 分類建議與 `topic_ids`。主題判斷只可使用 prompt 中的名稱、追蹤指數、投資策略與來源證據。
-9. 將 Claude 的分類建議限制在允許值集合中，再與規則式資料、已驗證產品設定及風險證據合併。
+7. 將每檔最多八筆搜尋摘要、每頁最多 3,000 字元且每檔最多 9,000 字元的正文證據送至 OpenAI Responses API。OpenAI 每批最多處理三檔，並以 JSON Schema 限定輸出欄位與允許值。
+8. OpenAI 同時回傳 ETF 分類建議與 `topic_ids`。主題判斷只可使用 prompt 中的名稱、追蹤指數、投資策略與來源證據。
+9. 將 OpenAI 的分類建議限制在允許值集合中，再與規則式資料、已驗證產品設定及風險證據合併。
 10. 以 `CSV_COLUMNS` 定義的 schema 寫出 CSV；其他內部欄位會被 `extrasaction="ignore"` 丟棄。
 
 ## 風險等級規則
 
-`risk_rank` 是證據優先欄位，不能由 Claude 或名稱規則猜測。
+`risk_rank` 是證據優先欄位，不能由 OpenAI 或名稱規則猜測。
 
 - 僅接受明確的 `RR1` 至 `RR5` 指派文字。
 - 來源需能識別相同 ticker，或可將基金名稱與單一 RR 值直接對應。
@@ -119,11 +120,11 @@ tinyfish search query <query> --language zh-TW
 Fixed Income / Investment Grade Corporate Bond ETFs / Global / Broad
 ```
 
-這份設定會優先於 Claude 的不一致推論，確保正式名稱、債券分類與投資區域同步一致。新增例外前，應先保留官方基金公司、交易所或可辨識同 ticker 的一手來源證據。
+這份設定會優先於 OpenAI 的不一致推論，確保正式名稱、債券分類與投資區域同步一致。新增例外前，應先保留官方基金公司、交易所或可辨識同 ticker 的一手來源證據。
 
 ## 主題標籤
 
-`主題標籤` 由同一次 Claude 呼叫的 `topic_ids` 產生，不會增加額外的模型請求。主題 taxonomy 與判斷規則參考 `etf_topic_classification_prompt.md`：模型只能使用固定的 41 個 ID、可不選主題、最多五個，且不得因外部知識推斷成分股或曝險。
+`主題標籤` 由同一次 OpenAI 呼叫的 `topic_ids` 產生，不會增加額外的模型請求。主題 taxonomy 與判斷規則參考 `etf_topic_classification_prompt.md`：模型只能使用固定的 41 個 ID、可不選主題、最多五個，且不得因外部知識推斷成分股或曝險。
 
 模型輸出後必須由 `normalize_topic_labels()` 做程式端後處理：
 
@@ -149,14 +150,14 @@ Fixed Income / Investment Grade Corporate Bond ETFs / Global / Broad
 | `commodity_type` | 僅商品 ETF 使用，例如 `Energy` |
 | `currency` | 僅貨幣 ETF 使用，例如 `USD` |
 | `risk_rank` | 具來源證據的 `RR1` 至 `RR5`；未證實則留白 |
-| `繁中敘述` | Claude 依正文與搜尋摘要寫出的繁中 ETF 介紹 |
+| `繁中敘述` | OpenAI 依正文與搜尋摘要寫出的繁中 ETF 介紹 |
 
 ## 失敗處理與觀測
 
 - 單一 ticker 搜尋失敗不會中斷整批；它仍會寫入一列，`繁中敘述` 以錯誤訊息說明。
 - URL-to-Markdown 個別來源失敗時會保留失敗狀態；其他成功正文仍可供模型使用。
-- 未設定 Anthropic key 時，工具略過 Claude，改用規則式分類和最小的 ETF 說明文字。
-- CLI 會輸出每檔 Markdown 成功數、風險等級、TinyFish 搜尋次數，以及 Claude 的 token 和預估成本。
+- 未設定 `OPENAI_API_KEY`、API 呼叫失敗、回傳 ticker 不完整，或敘述少於 100 字時，工具停止且不寫出 CSV；不再發布備援短句。
+- CLI 會輸出每檔 Markdown 成功數、風險等級、TinyFish 搜尋次數，以及 OpenAI 的 token 和預估成本。
 
 ## 驗證建議
 

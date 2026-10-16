@@ -9,18 +9,18 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const CLAUDE_MODEL = "claude-sonnet-5";
-const CLAUDE_PRICING = {
-  inputUsdPerMillion: Number(process.env.CLAUDE_INPUT_PRICE_PER_MILLION_USD || 2),
-  outputUsdPerMillion: Number(process.env.CLAUDE_OUTPUT_PRICE_PER_MILLION_USD || 10),
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
+const OPENAI_PRICING = {
+  inputUsdPerMillion: Number(process.env.OPENAI_INPUT_PRICE_PER_MILLION_USD || 0.75),
+  outputUsdPerMillion: Number(process.env.OPENAI_OUTPUT_PRICE_PER_MILLION_USD || 4.5),
 };
 const URL_TO_MARKDOWN_API = (process.env.URL_TO_MARKDOWN_API || "http://127.0.0.1:8000").replace(/\/+$/, "");
 const URL_TO_MARKDOWN_TIMEOUT_MS = Number(process.env.URL_TO_MARKDOWN_TIMEOUT_MS || 45000);
-const CLAUDE_BATCH_SIZE = Math.max(1, Math.min(3, Number(process.env.CLAUDE_BATCH_SIZE || 3)));
-const CLAUDE_MAX_SEARCH_RESULTS = 8;
-const CLAUDE_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000;
-const CLAUDE_MAX_MARKDOWN_CHARS_PER_TICKER = 9000;
+const OPENAI_BATCH_SIZE = Math.max(1, Math.min(3, Number(process.env.OPENAI_BATCH_SIZE || 3)));
+const OPENAI_MAX_SEARCH_RESULTS = 8;
+const OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000;
+const OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000;
 // Search results can name an ETF umbrella fund instead of its exact sub-fund.
 // Keep only verified corrections here so classification follows the source-backed identity.
 const VERIFIED_PRODUCT_OVERRIDES = {
@@ -44,6 +44,45 @@ const TOPIC_LABELS = {
   39: "太空經濟", 41: "航運", 42: "核能/鈾礦", 43: "國防/軍工",
 };
 const TOPIC_COOCCURRENCE_GROUP = new Set([9, 15, 22, 26]);
+const OPENAI_RESULT_PROPERTIES = {
+  ticker: { type: "string" },
+  繁中名稱: { type: "string" },
+  繁中敘述: { type: "string" },
+  zacks_category: { type: "string", enum: ALLOWED_VALUES.zacks_category },
+  zacks_sector: { type: "string", enum: ["", ...ALLOWED_VALUES.zacks_sector] },
+  region_general: { type: "string", enum: ALLOWED_VALUES.region_general },
+  region_specific: { type: "string", enum: ALLOWED_VALUES.region_specific },
+  commodity_type: { type: "string", enum: ["", ...ALLOWED_VALUES.commodity_type] },
+  currency: { type: "string", enum: ["", ...ALLOWED_VALUES.currency] },
+  leveraged: { type: "string", enum: ALLOWED_VALUES.leveraged },
+  actively_managed: { type: "string", enum: ALLOWED_VALUES.actively_managed },
+  risk_rank: { type: "string", enum: ["", ...ALLOWED_VALUES.risk_rank] },
+  topic_ids: {
+    type: "array",
+    items: { type: "integer", enum: Object.keys(TOPIC_LABELS).map(Number) },
+  },
+};
+const OPENAI_RESPONSE_TEXT_FORMAT = {
+  type: "json_schema",
+  name: "etf_research_batch",
+  strict: true,
+  schema: {
+    type: "object",
+    properties: {
+      results: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: OPENAI_RESULT_PROPERTIES,
+          required: Object.keys(OPENAI_RESULT_PROPERTIES),
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["results"],
+    additionalProperties: false,
+  },
+};
 const ALLOWED_VALUES = {
   zacks_category: ["Commodities", "Currency", "Equity", "Fixed Income"],
   zacks_sector: [
@@ -114,45 +153,45 @@ function applyVerifiedProductOverride(ticker, pre) {
   } : pre;
 }
 
-function normalizeClassification(claude, data) {
+function normalizeClassification(openai, data) {
   const verified = data.verifiedProduct || {};
-  const nameRules = preClassify(data.ticker, claude?.繁中名稱 || data.etfName);
+  const nameRules = preClassify(data.ticker, openai?.繁中名稱 || data.etfName);
   const ruleCategory = verified.zacksCategory || (data.pre.zacksCategory !== "Equity"
     ? data.pre.zacksCategory
     : nameRules.zacksCategory);
   const ruleZacksSector = verified.zacksSector || data.pre.zacksSector || nameRules.zacksSector;
   const ruleCommodityType = data.pre.commodityType || nameRules.commodityType;
   const ruleCurrency = data.pre.currency || nameRules.currency;
-  const hasExplicitKoreaRegion = /台日韓|韓國|korea|kospi/i.test(claude?.繁中名稱 || data.etfName);
+  const hasExplicitKoreaRegion = /台日韓|韓國|korea|kospi/i.test(openai?.繁中名稱 || data.etfName);
 
   // Fixed-income, commodity and currency names are explicit enough to use as
   // a guardrail when the model returns an otherwise valid but wrong category.
   const category = ruleCategory !== "Equity"
     ? ruleCategory
-    : allowedValue(claude?.zacks_category, "zacks_category", ruleCategory);
+    : allowedValue(openai?.zacks_category, "zacks_category", ruleCategory);
   const regionGeneral = verified.regionGeneral || (hasExplicitKoreaRegion
     ? nameRules.regionGeneral
-    : allowedValue(claude?.region_general, "region_general", data.pre.regionGeneral));
+    : allowedValue(openai?.region_general, "region_general", data.pre.regionGeneral));
   const regionSpecific = verified.regionSpecific || (hasExplicitKoreaRegion
     ? nameRules.regionSpecific
-    : allowedValue(claude?.region_specific, "region_specific", data.pre.regionSpecific));
+    : allowedValue(openai?.region_specific, "region_specific", data.pre.regionSpecific));
 
   return {
     zacks_category: category,
     zacks_sector: category === "Fixed Income"
-      ? allowedValue(claude?.zacks_sector, "zacks_sector", ruleZacksSector)
+      ? allowedValue(openai?.zacks_sector, "zacks_sector", ruleZacksSector)
       : "",
     region_general: regionGeneral,
     region_specific: regionSpecific,
     commodity_type: category === "Commodities"
-      ? allowedValue(claude?.commodity_type, "commodity_type", ruleCommodityType)
+      ? allowedValue(openai?.commodity_type, "commodity_type", ruleCommodityType)
       : "",
     currency: category === "Currency"
-      ? allowedValue(claude?.currency, "currency", ruleCurrency)
+      ? allowedValue(openai?.currency, "currency", ruleCurrency)
       : "",
-    leveraged: allowedValue(claude?.leveraged, "leveraged", data.pre.isLeveraged ? "Yes" : "No"),
-    actively_managed: allowedValue(claude?.actively_managed, "actively_managed", data.pre.isActive ? "Yes" : "No"),
-    // risk_rank is evidence-only; Claude must never infer it.
+    leveraged: allowedValue(openai?.leveraged, "leveraged", data.pre.isLeveraged ? "Yes" : "No"),
+    actively_managed: allowedValue(openai?.actively_managed, "actively_managed", data.pre.isActive ? "Yes" : "No"),
+    // risk_rank is evidence-only; OpenAI must never infer it.
     risk_rank: data.pre.riskRank,
   };
 }
@@ -161,11 +200,11 @@ function roundCost(value) {
   return Math.round(value * 1e8) / 1e8;
 }
 
-function calculateClaudeUsage(apiResponse) {
+function calculateOpenAIUsage(apiResponse) {
   const inputTokens = Math.max(0, Number(apiResponse?.usage?.input_tokens) || 0);
   const outputTokens = Math.max(0, Number(apiResponse?.usage?.output_tokens) || 0);
-  const inputCostUsd = inputTokens / 1_000_000 * CLAUDE_PRICING.inputUsdPerMillion;
-  const outputCostUsd = outputTokens / 1_000_000 * CLAUDE_PRICING.outputUsdPerMillion;
+  const inputCostUsd = inputTokens / 1_000_000 * OPENAI_PRICING.inputUsdPerMillion;
+  const outputCostUsd = outputTokens / 1_000_000 * OPENAI_PRICING.outputUsdPerMillion;
 
   return {
     input_tokens: inputTokens,
@@ -711,7 +750,7 @@ function extractRiskRankFromSources(sources, ticker, etfName = "") {
   return "";
 }
 
-// ── Preliminary classification (rule-based, before Claude) ──
+// ── Preliminary classification (rule-based, before OpenAI) ──
 
 function preClassify(ticker, name) {
   const isActive = /主動式|主動型/i.test(name) || /A$/.test(ticker);
@@ -766,45 +805,38 @@ function preClassify(ticker, name) {
   };
 }
 
-// ── Claude API call (ONE call for ALL tickers) ──
+// ── OpenAI API call (ONE call for ALL tickers) ──
 
-async function callClaude(prompt) {
-  if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === "your-api-key-here") {
-    return null;
+async function callOpenAI(prompt) {
+  if (!OPENAI_API_KEY || OPENAI_API_KEY === "your-api-key-here") {
+    throw new Error("OPENAI_API_KEY is not configured");
   }
-  try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: 16384,
-        
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    const data = await resp.json();
-    if (data.content && Array.isArray(data.content)) {
-      // Sonnet 5 may return thinking + text blocks; find the text block
-      const textBlock = data.content.find(b => b.type === "text" && b.text);
-      const text = textBlock?.text || data.content[0]?.text || "";
-      if (text) {
-        return {
-          text,
-          usage: calculateClaudeUsage(data),
-        };
-      }
-    }
-    console.error("Claude API response:", JSON.stringify(data).slice(0, 300));
-    return null;
-  } catch (e) {
-    console.error("Claude API error:", e.message);
-    return null;
+  const resp = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      max_output_tokens: 16384,
+      store: false,
+      input: prompt,
+      text: { format: OPENAI_RESPONSE_TEXT_FORMAT },
+    }),
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    const message = data?.error?.message || JSON.stringify(data).slice(0, 1200);
+    throw new Error(`OpenAI API HTTP ${resp.status}: ${message}`);
   }
+  const text = data.output_text || (data.output || [])
+    .flatMap(item => item.content || [])
+    .filter(item => item.type === "output_text")
+    .map(item => item.text || "")
+    .join("");
+  if (!text) throw new Error(`OpenAI API response did not contain output_text: ${JSON.stringify(data).slice(0, 1200)}`);
+  return { text, usage: calculateOpenAIUsage(data) };
 }
 
 // ── Research one ticker with TinyFish ──
@@ -994,7 +1026,7 @@ async function researchTicker(ticker) {
   };
 }
 
-// ── Build Claude prompt with bounded, relevant evidence ──
+// ── Build OpenAI prompt with bounded, relevant evidence ──
 
 function markdownExcerptForPrompt(text, ticker, etfName, maxChars) {
   const sourceText = String(text || "").replace(/\0/g, "").trim();
@@ -1055,7 +1087,7 @@ function searchSummariesForPrompt(data) {
       return source.title || source.snippet || url;
     })
     .sort((a, b) => Number(selectedUrls.has(b.url)) - Number(selectedUrls.has(a.url)))
-    .slice(0, CLAUDE_MAX_SEARCH_RESULTS);
+    .slice(0, OPENAI_MAX_SEARCH_RESULTS);
   return sources.map((source, index) =>
     (index + 1) + ". " + (source.title || "（無標題）")
     + "\n摘要: " + (source.snippet || "（無摘要）")
@@ -1064,7 +1096,7 @@ function searchSummariesForPrompt(data) {
 }
 
 function markdownEvidenceForPrompt(data) {
-  let remaining = CLAUDE_MAX_MARKDOWN_CHARS_PER_TICKER;
+  let remaining = OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER;
   const sections = [];
   for (const [index, source] of (data.markdownResults || []).entries()) {
     if (source.status !== "ok" || remaining <= 0) continue;
@@ -1072,7 +1104,7 @@ function markdownEvidenceForPrompt(data) {
       source.text,
       data.ticker,
       data.etfName,
-      Math.min(CLAUDE_MAX_MARKDOWN_CHARS_PER_SOURCE, remaining),
+      Math.min(OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE, remaining),
     );
     if (!excerpt) continue;
     remaining -= excerpt.length;
@@ -1084,7 +1116,7 @@ function markdownEvidenceForPrompt(data) {
   return sections.join("\n\n") || "（URL to Markdown 沒有取得全文）";
 }
 
-function buildClaudePrompt(tickerData) {
+function buildOpenAIPrompt(tickerData) {
   const schema = `你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成三件事：
 
 1. **繁中敘述**：用繁體中文寫一段約300字的ETF介紹，一整段流暢專業的敘述文（不要用條列式）。請綜合運用以下所有資料來源：URL to Markdown 全文摘錄（優先）、搜尋摘要中的具體資訊。內容應涵蓋：發行投信公司、上市/掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、費率（經理費/保管費）、經理人、配息頻率、以及適合的投資人類型。語氣應像專業財經媒體的ETF介紹文，文字流暢有資訊密度。資料不足的項目可以略過，絕對不要自行捏造數字或細節。
@@ -1101,8 +1133,8 @@ function buildClaudePrompt(tickerData) {
 
 3. **主題分類**：只根據本題提供的 ETF 名稱、追蹤指數、投資策略、搜尋摘要與正文證據，選出 0 到 5 個 topic_ids；禁止用外部知識推測成分股或曝險。沒有明確聚焦主題時回傳空陣列。品質因子(20)只在文字明確以 profitability、ROE、growth、safety 等品質因子作為選股標準時使用；「品質」「優質」「護城河」等一般用語不足以選擇。名稱或策略明確包含 REITs、不動產或房地產時選房地產循環(28)。若選擇 9、15、22、26 中任一項，必須同時選擇全部四項；這四項會佔用四個名額，最多僅能再選一項。只能使用下列 id：1=乾淨能源、2=電動/自駕車、3=區塊鏈、4=5G、5=大麻、6=機器人、7=雲端運算、8=網路安全、9=人工智慧、10=電商、11=基礎建設、12=網路、13=天然資源、14=黃金礦業、15=半導體、16=股利因子、17=動能因子、18=規模因子-等權重、19=波動率因子、20=品質因子、21=油氣、22=景氣擴張、23=景氣趨緩、24=景氣衰退、25=景氣復甦、26=生產力循環、27=通膨循環、28=房地產循環、29=美元循環、30=製造業循環、32=比特幣（現貨）、33=比特幣（期貨）、34=鋰電池/鋰礦、35=水資源、36=元宇宙、37=遊戲、38=金融科技、39=太空經濟、41=航運、42=核能/鈾礦、43=國防/軍工。
 
-請以JSON陣列格式回覆，每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。
-只回覆JSON，不要其他文字。`;
+請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 100 字；缺乏來源支持的細節請省略，不得用搜尋標題代替研究敘述。
+只回覆符合指定 JSON schema 的內容，不要其他文字。`;
 
   let tickerBlocks = "";
   for (const d of tickerData) {
@@ -1130,6 +1162,9 @@ app.post("/api/research", async (req, res) => {
   if (!tickers || !Array.isArray(tickers) || !tickers.length) {
     return res.status(400).json({ error: "Please provide tickers array" });
   }
+  if (!OPENAI_API_KEY || OPENAI_API_KEY === "your-api-key-here") {
+    return res.status(503).json({ error: "OPENAI_API_KEY is not configured" });
+  }
 
   const uniqueTickers = [...new Set(
     tickers.map((ticker) => String(ticker).trim().toUpperCase()).filter(Boolean)
@@ -1149,41 +1184,53 @@ app.post("/api/research", async (req, res) => {
 
   // Step 2: Keep batches small enough that source evidence remains useful.
   const validData = tickerData.filter(d => !d.error);
-  let claudeResults = [];
-  let claudeCalls = 0;
-  let claudeUsage = calculateClaudeUsage();
-  const BATCH_SIZE = CLAUDE_BATCH_SIZE;
+  let openaiResults = [];
+  let openaiCalls = 0;
+  let openaiUsage = calculateOpenAIUsage();
+  const BATCH_SIZE = OPENAI_BATCH_SIZE;
 
-  if (validData.length > 0 && ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== "your-api-key-here") {
+  if (validData.length > 0) {
     let totalInput = 0, totalOutput = 0;
-    for (let i = 0; i < validData.length; i += BATCH_SIZE) {
-      const batch = validData.slice(i, i + BATCH_SIZE);
-      claudeCalls += 1;
-      console.log(`Claude batch ${claudeCalls}: ${batch.map(d => d.ticker).join(', ')}`);
-      const prompt = buildClaudePrompt(batch);
-      const claudeResponse = await callClaude(prompt);
-      if (claudeResponse) {
-        totalInput += claudeResponse.usage.input_tokens;
-        totalOutput += claudeResponse.usage.output_tokens;
-        try {
-          const jsonMatch = claudeResponse.text.match(/\[[\s\S]*\]/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            claudeResults = claudeResults.concat(parsed);
-            console.log('  returned:', parsed.map(c => c.ticker).join(', '));
-          }
-        } catch (e) {
-          console.error('  Claude JSON parse error:', e.message);
+    try {
+      for (let i = 0; i < validData.length; i += BATCH_SIZE) {
+        const batch = validData.slice(i, i + BATCH_SIZE);
+        openaiCalls += 1;
+        console.log(`OpenAI batch ${openaiCalls}: ${batch.map(d => d.ticker).join(', ')}`);
+        const prompt = buildOpenAIPrompt(batch);
+        const openaiResponse = await callOpenAI(prompt);
+        totalInput += openaiResponse.usage.input_tokens;
+        totalOutput += openaiResponse.usage.output_tokens;
+        const parsed = JSON.parse(openaiResponse.text);
+        const batchResults = parsed.results;
+        const expectedTickers = batch.map(d => d.ticker);
+        const returnedTickers = batchResults.map(item => String(item.ticker || "").replace(/\.TW$/i, "").trim().toUpperCase());
+        if (returnedTickers.length !== expectedTickers.length ||
+            new Set(returnedTickers).size !== expectedTickers.length ||
+            expectedTickers.some(ticker => !returnedTickers.includes(ticker))) {
+          throw new Error(`OpenAI returned tickers ${JSON.stringify(returnedTickers)}; expected exactly ${JSON.stringify(expectedTickers)}`);
         }
+        for (const item of batchResults) {
+          if (String(item.繁中名稱 || "").trim().length < 2) {
+            throw new Error(`OpenAI omitted the official name for ${item.ticker}`);
+          }
+          if (String(item.繁中敘述 || "").trim().length < 100) {
+            throw new Error(`OpenAI description for ${item.ticker} is under 100 characters`);
+          }
+        }
+        openaiResults = openaiResults.concat(batchResults);
+        console.log('  returned:', batchResults.map(c => c.ticker).join(', '));
       }
+    } catch (error) {
+      console.error("OpenAI research failed:", error.message);
+      return res.status(502).json({ error: `OpenAI research failed: ${error.message}` });
     }
-    claudeUsage = {
+    openaiUsage = {
       input_tokens: totalInput,
       output_tokens: totalOutput,
       total_tokens: totalInput + totalOutput,
-      input_cost_usd: roundCost(totalInput / 1_000_000 * CLAUDE_PRICING.inputUsdPerMillion),
-      output_cost_usd: roundCost(totalOutput / 1_000_000 * CLAUDE_PRICING.outputUsdPerMillion),
-      total_cost_usd: roundCost(totalInput / 1_000_000 * CLAUDE_PRICING.inputUsdPerMillion + totalOutput / 1_000_000 * CLAUDE_PRICING.outputUsdPerMillion),
+      input_cost_usd: roundCost(totalInput / 1_000_000 * OPENAI_PRICING.inputUsdPerMillion),
+      output_cost_usd: roundCost(totalOutput / 1_000_000 * OPENAI_PRICING.outputUsdPerMillion),
+      total_cost_usd: roundCost(totalInput / 1_000_000 * OPENAI_PRICING.inputUsdPerMillion + totalOutput / 1_000_000 * OPENAI_PRICING.outputUsdPerMillion),
     };
   }
 
@@ -1195,47 +1242,23 @@ app.post("/api/research", async (req, res) => {
       continue;
     }
 
-    // Find Claude's output for this ticker
-    const claude = claudeResults?.find(c => {
+    // Find OpenAI's output for this ticker
+    const openai = openaiResults?.find(c => {
       const ct = String(c.ticker || "").replace(/\.TW$/i, "").trim().toUpperCase();
       return ct === d.ticker;
     });
+    if (!openai || String(openai.繁中敘述 || "").trim().length < 100) {
+      return res.status(502).json({ error: `OpenAI returned no complete research record for ${d.ticker}` });
+    }
 
-    if (claude) {
-      // Use Claude's refined classification + description
+    if (openai) {
+      // Use OpenAI's refined classification + description
       results.push({
         ticker: d.ticker,
-        主題標籤: normalizeTopicLabels(claude.topic_ids),
-        繁中名稱: d.verifiedProduct?.name || claude.繁中名稱 || d.etfName,
-        ...normalizeClassification(claude, d),
-        繁中敘述: claude.繁中敘述 || "",
-        tinyfish_query: d.query,
-        tinyfish_results: d.tinyfishResults,
-        url_to_markdown_results: d.markdownResults.map((source) => ({
-          title: source.title,
-          url: source.url,
-          source: source.source,
-          status: source.status,
-          error: source.error || "",
-          text_preview: source.text.slice(0, 1800),
-        })),
-        risk_evidence_results: d.riskMarkdownResults.map((source) => ({
-          title: source.title,
-          url: source.url,
-          source: source.source,
-          status: source.status,
-          error: source.error || "",
-          text_preview: source.text.slice(0, 1800),
-        })),
-      });
-    } else {
-      // Fallback to rule-based only (no Claude or API key missing)
-      const desc = `${d.etfName}（股票代號：${d.ticker}）為台灣掛牌之ETF。詳細資訊請參考下方TinyFish搜尋來源。`;
-
-      results.push({
-        ticker: d.ticker, 主題標籤: "", 繁中名稱: d.etfName,
-        ...normalizeClassification(null, d),
-        繁中敘述: desc,
+        主題標籤: normalizeTopicLabels(openai.topic_ids),
+        繁中名稱: d.verifiedProduct?.name || openai.繁中名稱 || d.etfName,
+        ...normalizeClassification(openai, d),
+        繁中敘述: openai.繁中敘述 || "",
         tinyfish_query: d.query,
         tinyfish_results: d.tinyfishResults,
         url_to_markdown_results: d.markdownResults.map((source) => ({
@@ -1267,12 +1290,12 @@ app.post("/api/research", async (req, res) => {
       url_to_markdown_pages: tickerData.reduce((total, data) => total + (data.markdownResults?.filter((source) => source.status === "ok").length || 0), 0),
       risk_evidence_markdown_calls: tickerData.reduce((total, data) => total + (data.riskMarkdownResults?.length || 0), 0),
       risk_evidence_markdown_pages: tickerData.reduce((total, data) => total + (data.riskMarkdownResults?.filter((source) => source.status === "ok").length || 0), 0),
-      claude_calls: claudeCalls,
-      claude_usage: { requests: claudeCalls, ...claudeUsage },
-      claude_pricing: {
-        model: CLAUDE_MODEL,
-        input_usd_per_million_tokens: CLAUDE_PRICING.inputUsdPerMillion,
-        output_usd_per_million_tokens: CLAUDE_PRICING.outputUsdPerMillion,
+      openai_calls: openaiCalls,
+      openai_usage: { requests: openaiCalls, ...openaiUsage },
+      openai_pricing: {
+        model: OPENAI_MODEL,
+        input_usd_per_million_tokens: OPENAI_PRICING.inputUsdPerMillion,
+        output_usd_per_million_tokens: OPENAI_PRICING.outputUsdPerMillion,
       },
       crawler_used: tickerData.some((data) => (data.markdownResults?.some((source) => source.status === "ok") || false)),
     },

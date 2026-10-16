@@ -11,36 +11,46 @@ ETF Research CLI - 台灣 ETF 分類與描述產生器
 
 import argparse, concurrent.futures, csv, json, os, re, subprocess, sys, time
 from urllib.parse import quote, urlparse
+from urllib.error import HTTPError
 
 import urllib.request
 def _post_json(url, headers, payload, timeout=120):
     """POST JSON and return parsed response dict."""
     data = json.dumps(payload).encode()
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read())
+    except HTTPError as exc:
+        body = exc.read().decode("utf-8", "replace")
+        try:
+            error = json.loads(body).get("error", {})
+            detail = error.get("message") or error.get("code") or body
+        except (TypeError, ValueError):
+            detail = body
+        raise RuntimeError(f"OpenAI API HTTP {exc.code}: {str(detail)[:1200]}") from exc
 
 # ── Config ──
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-if not ANTHROPIC_API_KEY:
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+if not OPENAI_API_KEY:
     # Try .env in same directory
     env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
     if os.path.exists(env_path):
         for line in open(env_path):
             line = line.strip()
-            if line.startswith("ANTHROPIC_API_KEY="):
-                ANTHROPIC_API_KEY = line.split("=", 1)[1].strip()
+            if line.startswith("OPENAI_API_KEY="):
+                OPENAI_API_KEY = line.split("=", 1)[1].strip()
 
-CLAUDE_MODEL = "claude-sonnet-5"
-CLAUDE_INPUT_PRICE = float(os.environ.get("CLAUDE_INPUT_PRICE_PER_MILLION_USD", "2"))
-CLAUDE_OUTPUT_PRICE = float(os.environ.get("CLAUDE_OUTPUT_PRICE_PER_MILLION_USD", "10"))
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.4-mini")
+OPENAI_INPUT_PRICE = float(os.environ.get("OPENAI_INPUT_PRICE_PER_MILLION_USD", "0.75"))
+OPENAI_OUTPUT_PRICE = float(os.environ.get("OPENAI_OUTPUT_PRICE_PER_MILLION_USD", "4.5"))
 URL_TO_MARKDOWN_API = os.environ.get("URL_TO_MARKDOWN_API", "http://127.0.0.1:8000").rstrip("/")
 URL_TO_MARKDOWN_TIMEOUT = int(os.environ.get("URL_TO_MARKDOWN_TIMEOUT_SECONDS", "45"))
-CLAUDE_BATCH_SIZE = max(1, min(3, int(os.environ.get("CLAUDE_BATCH_SIZE", "3"))))
-CLAUDE_MAX_SEARCH_RESULTS = 8
-CLAUDE_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000
-CLAUDE_MAX_MARKDOWN_CHARS_PER_TICKER = 9000
+OPENAI_BATCH_SIZE = max(1, min(3, int(os.environ.get("OPENAI_BATCH_SIZE", "3"))))
+OPENAI_MAX_SEARCH_RESULTS = 8
+OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000
+OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000
 VERIFIED_PRODUCT_OVERRIDES = {
     "00991B": {
         "name": "貝萊德iShares安碩10年期以上A級美元公司債ETF",
@@ -83,6 +93,43 @@ TOPIC_LABELS = {
     39: "太空經濟", 41: "航運", 42: "核能/鈾礦", 43: "國防/軍工",
 }
 TOPIC_COOCCURRENCE_GROUP = {9, 15, 22, 26}
+
+OPENAI_RESULT_PROPERTIES = {
+    "ticker": {"type": "string"},
+    "繁中名稱": {"type": "string"},
+    "繁中敘述": {"type": "string"},
+    "zacks_category": {"type": "string", "enum": ALLOWED["zacks_category"]},
+    "zacks_sector": {"type": "string", "enum": ["", *ALLOWED["zacks_sector"]]},
+    "region_general": {"type": "string", "enum": ALLOWED["region_general"]},
+    "region_specific": {"type": "string", "enum": ALLOWED["region_specific"]},
+    "commodity_type": {"type": "string", "enum": ["", *ALLOWED["commodity_type"]]},
+    "currency": {"type": "string", "enum": ["", *ALLOWED["currency"]]},
+    "leveraged": {"type": "string", "enum": ALLOWED["leveraged"]},
+    "actively_managed": {"type": "string", "enum": ALLOWED["actively_managed"]},
+    "risk_rank": {"type": "string", "enum": ["", *ALLOWED["risk_rank"]]},
+    "topic_ids": {"type": "array", "items": {"type": "integer", "enum": sorted(TOPIC_LABELS)}},
+}
+OPENAI_RESPONSE_TEXT_FORMAT = {
+    "type": "json_schema",
+    "name": "etf_research_batch",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "results": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": OPENAI_RESULT_PROPERTIES,
+                    "required": list(OPENAI_RESULT_PROPERTIES),
+                    "additionalProperties": False,
+                },
+            },
+        },
+        "required": ["results"],
+        "additionalProperties": False,
+    },
+}
 
 # ── Helpers ──
 
@@ -907,7 +954,7 @@ def research_ticker(ticker):
     }
 
 
-# ── Claude ──
+# ── OpenAI ──
 
 def markdown_excerpt_for_prompt(text, ticker, etf_name, max_chars):
     source_text = str(text or "").replace("\0", "").strip()
@@ -973,12 +1020,12 @@ def search_summaries_for_prompt(data):
         f"{index + 1}. {source.get('title') or '（無標題）'}\n"
         f"摘要: {source.get('snippet') or '（無摘要）'}\n"
         f"網址: {source.get('url') or '（無網址）'}"
-        for index, source in enumerate(sources[:CLAUDE_MAX_SEARCH_RESULTS])
+        for index, source in enumerate(sources[:OPENAI_MAX_SEARCH_RESULTS])
     )
 
 
 def markdown_evidence_for_prompt(data):
-    remaining = CLAUDE_MAX_MARKDOWN_CHARS_PER_TICKER
+    remaining = OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER
     sections = []
     for index, source in enumerate(data.get("markdownResults") or []):
         if source.get("status") != "ok" or remaining <= 0:
@@ -987,7 +1034,7 @@ def markdown_evidence_for_prompt(data):
             source.get("text", ""),
             data.get("ticker", ""),
             data.get("etfName", ""),
-            min(CLAUDE_MAX_MARKDOWN_CHARS_PER_SOURCE, remaining),
+            min(OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE, remaining),
         )
         if not excerpt:
             continue
@@ -997,7 +1044,7 @@ def markdown_evidence_for_prompt(data):
             f"網址: {source['url']}\n內容:\n{excerpt}")
     return "\n\n".join(sections) or "（URL to Markdown 沒有取得全文）"
 
-def build_claude_prompt(ticker_data):
+def build_openai_prompt(ticker_data):
     schema = """你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成兩件事：
 
 1. **繁中敘述**：用繁體中文寫一段約300字的ETF介紹，一整段流暢專業的敘述文（不要用條列式）。請綜合運用以下所有資料來源：URL to Markdown 全文摘錄（優先）、搜尋摘要中的具體資訊。內容應涵蓋：發行投信公司、上市/掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、費率（經理費/保管費）、經理人、配息頻率、以及適合的投資人類型。語氣應像專業財經媒體的ETF介紹文，文字流暢有資訊密度。資料不足的項目可以略過，絕對不要自行捏造數字或細節。
@@ -1014,8 +1061,8 @@ def build_claude_prompt(ticker_data):
 
 3. **主題分類**：只根據本題提供的 ETF 名稱、追蹤指數、投資策略、搜尋摘要與正文證據，選出 0 到 5 個 topic_ids；禁止用外部知識推測成分股或曝險。沒有明確聚焦主題時回傳空陣列。品質因子(20)只在文字明確以 profitability、ROE、growth、safety 等品質因子作為選股標準時使用；「品質」「優質」「護城河」等一般用語不足以選擇。名稱或策略明確包含 REITs、不動產或房地產時選房地產循環(28)。若選擇 9、15、22、26 中任一項，必須同時選擇全部四項；這四項會佔用四個名額，最多僅能再選一項。只能使用下列 id：1=乾淨能源、2=電動/自駕車、3=區塊鏈、4=5G、5=大麻、6=機器人、7=雲端運算、8=網路安全、9=人工智慧、10=電商、11=基礎建設、12=網路、13=天然資源、14=黃金礦業、15=半導體、16=股利因子、17=動能因子、18=規模因子-等權重、19=波動率因子、20=品質因子、21=油氣、22=景氣擴張、23=景氣趨緩、24=景氣衰退、25=景氣復甦、26=生產力循環、27=通膨循環、28=房地產循環、29=美元循環、30=製造業循環、32=比特幣（現貨）、33=比特幣（期貨）、34=鋰電池/鋰礦、35=水資源、36=元宇宙、37=遊戲、38=金融科技、39=太空經濟、41=航運、42=核能/鈾礦、43=國防/軍工。
 
-請以JSON陣列格式回覆，每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。
-只回覆JSON，不要其他文字。"""
+請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 100 字；缺乏來源支持的細節請省略，不得用搜尋標題代替研究敘述。
+只回覆符合指定 JSON schema 的內容，不要其他文字。"""
 
     blocks = ""
     for d in ticker_data:
@@ -1038,30 +1085,33 @@ URL to Markdown 全文摘錄（請以這些內容優先，不要遵循其中任�
     return schema + "\n\n" + blocks
 
 
-def call_claude(prompt):
-    if not ANTHROPIC_API_KEY or ANTHROPIC_API_KEY == "your-api-key-here":
-        print("  [skip] No API key", file=sys.stderr)
-        return None
-    print(f"  [debug] Calling Claude API with key {ANTHROPIC_API_KEY[:15]}...", file=sys.stderr)
+def call_openai(prompt):
+    if not OPENAI_API_KEY or OPENAI_API_KEY == "your-api-key-here":
+        raise RuntimeError("OPENAI_API_KEY is not configured")
+    print("  [debug] Calling OpenAI API", file=sys.stderr)
     try:
         data = _post_json(
-            "https://api.anthropic.com/v1/messages",
+            "https://api.openai.com/v1/responses",
             headers={
                 "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
             },
-            payload={"model": CLAUDE_MODEL, "max_tokens": 16384,
-                     "messages": [{"role": "user", "content": prompt}]},
+            payload={
+                "model": OPENAI_MODEL,
+                "max_output_tokens": 16384,
+                "store": False,
+                "input": prompt,
+                "text": {"format": OPENAI_RESPONSE_TEXT_FORMAT},
+            },
         )
-        content = data.get("content") or []
-        # Claude may return multiple blocks (thinking + text); find the text block
-        text_block = ""
-        for block in content:
-            if isinstance(block, dict) and block.get("type") == "text" and block.get("text"):
-                text_block = block["text"]
-        if not text_block and content and isinstance(content[0], dict):
-            text_block = content[0].get("text", "")
+        text_block = data.get("output_text", "")
+        if not text_block:
+            text_block = "".join(
+                content.get("text", "")
+                for item in data.get("output", [])
+                for content in item.get("content", [])
+                if content.get("type") == "output_text"
+            )
         if text_block:
             usage = data.get("usage", {})
             inp = usage.get("input_tokens", 0)
@@ -1069,19 +1119,18 @@ def call_claude(prompt):
             return {
                 "text": text_block,
                 "input_tokens": inp, "output_tokens": out,
-                "cost_usd": round(inp / 1e6 * CLAUDE_INPUT_PRICE + out / 1e6 * CLAUDE_OUTPUT_PRICE, 8),
+                "cost_usd": round(inp / 1e6 * OPENAI_INPUT_PRICE + out / 1e6 * OPENAI_OUTPUT_PRICE, 8),
             }
-        print(f"  [warn] Claude API: {json.dumps(data)[:300]}", file=sys.stderr)
-        return None
+        raise RuntimeError(f"OpenAI API response did not contain output_text: {json.dumps(data)[:1200]}")
     except Exception as e:
-        print(f"  [error] Claude API: {e}", file=sys.stderr)
-        return None
+        print(f"  [error] OpenAI API: {e}", file=sys.stderr)
+        raise
 
 
-def normalize_classification(claude, data):
+def normalize_classification(openai, data):
     pre = data["pre"]
     verified = data.get("verifiedProduct", {})
-    name_rules = pre_classify(data["ticker"], (claude or {}).get("繁中名稱") or data["etfName"])
+    name_rules = pre_classify(data["ticker"], (openai or {}).get("繁中名稱") or data["etfName"])
     rule_category = (verified.get("zacksCategory") or
                      (pre["zacksCategory"] if pre["zacksCategory"] != "Equity"
                       else name_rules["zacksCategory"]))
@@ -1091,19 +1140,19 @@ def normalize_classification(claude, data):
     rule_currency = pre.get("currency") or name_rules["currency"]
     has_explicit_korea_region = bool(re.search(
         r"台日韓|韓國|korea|kospi",
-        (claude or {}).get("繁中名稱") or data["etfName"], re.I))
+        (openai or {}).get("繁中名稱") or data["etfName"], re.I))
     cat = (rule_category if rule_category != "Equity"
-           else allowed_value(claude.get("zacks_category") if claude else None,
+           else allowed_value(openai.get("zacks_category") if openai else None,
                               "zacks_category", rule_category))
     return {
         "zacks_category": cat,
-        "zacks_sector": allowed_value(claude.get("zacks_sector") if claude else None, "zacks_sector", rule_zacks_sector) if cat == "Fixed Income" else "",
-        "region_general": verified.get("regionGeneral") or (name_rules["regionGeneral"] if has_explicit_korea_region else allowed_value(claude.get("region_general") if claude else None, "region_general", pre["regionGeneral"])),
-        "region_specific": verified.get("regionSpecific") or (name_rules["regionSpecific"] if has_explicit_korea_region else allowed_value(claude.get("region_specific") if claude else None, "region_specific", pre["regionSpecific"])),
-        "commodity_type": allowed_value(claude.get("commodity_type") if claude else None, "commodity_type", rule_commodity_type) if cat == "Commodities" else "",
-        "currency": allowed_value(claude.get("currency") if claude else None, "currency", rule_currency) if cat == "Currency" else "",
-        "leveraged": allowed_value(claude.get("leveraged") if claude else None, "leveraged", "Yes" if pre["isLeveraged"] else "No"),
-        "actively_managed": allowed_value(claude.get("actively_managed") if claude else None, "actively_managed", "Yes" if pre["isActive"] else "No"),
+        "zacks_sector": allowed_value(openai.get("zacks_sector") if openai else None, "zacks_sector", rule_zacks_sector) if cat == "Fixed Income" else "",
+        "region_general": verified.get("regionGeneral") or (name_rules["regionGeneral"] if has_explicit_korea_region else allowed_value(openai.get("region_general") if openai else None, "region_general", pre["regionGeneral"])),
+        "region_specific": verified.get("regionSpecific") or (name_rules["regionSpecific"] if has_explicit_korea_region else allowed_value(openai.get("region_specific") if openai else None, "region_specific", pre["regionSpecific"])),
+        "commodity_type": allowed_value(openai.get("commodity_type") if openai else None, "commodity_type", rule_commodity_type) if cat == "Commodities" else "",
+        "currency": allowed_value(openai.get("currency") if openai else None, "currency", rule_currency) if cat == "Currency" else "",
+        "leveraged": allowed_value(openai.get("leveraged") if openai else None, "leveraged", "Yes" if pre["isLeveraged"] else "No"),
+        "actively_managed": allowed_value(openai.get("actively_managed") if openai else None, "actively_managed", "Yes" if pre["isActive"] else "No"),
         "risk_rank": pre["riskRank"],
     }
 
@@ -1125,6 +1174,9 @@ def main():
     if not tickers:
         print("請提供至少一個 ticker", file=sys.stderr)
         sys.exit(1)
+    if not OPENAI_API_KEY or OPENAI_API_KEY == "your-api-key-here":
+        print("錯誤：請先設定 OPENAI_API_KEY；未完成模型研究時不會輸出 CSV。", file=sys.stderr)
+        sys.exit(2)
 
     print(f"📊 開始研究 {len(tickers)} 檔 ETF: {', '.join(tickers)}")
 
@@ -1143,46 +1195,48 @@ def main():
         if i < len(tickers) - 1:
             time.sleep(0.8)
 
-    # Step 2: ONE Claude call
+    # Step 2: ONE OpenAI call
     valid = [d for d in ticker_data if not d.get("error")]
-    claude_results = None
-    claude_info = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0}
+    openai_results = []
+    openai_info = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0}
 
-    BATCH_SIZE = CLAUDE_BATCH_SIZE
-    if valid and ANTHROPIC_API_KEY:
+    BATCH_SIZE = OPENAI_BATCH_SIZE
+    if valid:
         total_input = 0
         total_output = 0
         total_cost = 0
-        claude_results = []
+        openai_results = []
         num_batches = (len(valid) + BATCH_SIZE - 1) // BATCH_SIZE
-        print(f"\n🤖 呼叫 Claude ({CLAUDE_MODEL}) 處理 {len(valid)} 檔 ETF (分 {num_batches} 批)...")
+        print(f"\n🤖 呼叫 OpenAI ({OPENAI_MODEL}) 處理 {len(valid)} 檔 ETF (分 {num_batches} 批)...")
         for bi in range(0, len(valid), BATCH_SIZE):
             batch = valid[bi:bi + BATCH_SIZE]
             batch_num = bi // BATCH_SIZE + 1
             print(f"  📦 批次 {batch_num}/{num_batches}: {[d['ticker'] for d in batch]}")
-            prompt = build_claude_prompt(batch)
-            resp = call_claude(prompt)
-            if resp:
-                total_input += resp["input_tokens"]
-                total_output += resp["output_tokens"]
-                total_cost += resp["cost_usd"]
-                try:
-                    raw_text = resp["text"]
-                    m = re.search(r"\[[\s\S]*\]", raw_text)
-                    if m:
-                        parsed = json.loads(m.group(0))
-                        claude_results.extend(parsed)
-                        print(f"     ✅ 回傳 {len(parsed)} 檔")
-                    else:
-                        print(f"     ❌ 找不到 JSON 陣列")
-                except Exception as e:
-                    print(f"     ❌ JSON 解析失敗: {e}")
-        claude_info = {"calls": num_batches, "input_tokens": total_input,
+            prompt = build_openai_prompt(batch)
+            resp = call_openai(prompt)
+            total_input += resp["input_tokens"]
+            total_output += resp["output_tokens"]
+            total_cost += resp["cost_usd"]
+            parsed = json.loads(resp["text"])
+            batch_results = parsed.get("results")
+            expected_tickers = [d["ticker"] for d in batch]
+            returned_tickers = [str(item.get("ticker", "")).replace(".TW", "").strip().upper()
+                                for item in batch_results or []]
+            if len(returned_tickers) != len(expected_tickers) or set(returned_tickers) != set(expected_tickers):
+                raise RuntimeError(
+                    f"OpenAI returned tickers {returned_tickers}; expected exactly {expected_tickers}"
+                )
+            for item in batch_results:
+                if len(str(item.get("繁中名稱", "")).strip()) < 2:
+                    raise RuntimeError(f"OpenAI omitted the official name for {item['ticker']}")
+                if len(str(item.get("繁中敘述", "")).strip()) < 100:
+                    raise RuntimeError(f"OpenAI description for {item['ticker']} is under 100 characters")
+            openai_results.extend(batch_results)
+            print(f"     ✅ 回傳 {len(batch_results)} 檔")
+        openai_info = {"calls": num_batches, "input_tokens": total_input,
                        "output_tokens": total_output, "cost_usd": total_cost}
-        if claude_results:
-            print(f"  ✅ 總計 Claude 回傳 {len(claude_results)} 檔")
-    elif not ANTHROPIC_API_KEY:
-        print("\n⚠️  未設定 ANTHROPIC_API_KEY，跳過 Claude 呼叫")
+        if openai_results:
+            print(f"  ✅ 總計 OpenAI 回傳 {len(openai_results)} 檔")
 
     # Step 3: Merge & write CSV
     rows = []
@@ -1191,18 +1245,20 @@ def main():
             rows.append({"ticker": d["ticker"], "繁中名稱": "", "繁中敘述": f"錯誤: {d['error']}"})
             continue
 
-        claude = None
-        if claude_results:
-            claude = next((c for c in claude_results
+        openai = None
+        if openai_results:
+            openai = next((c for c in openai_results
                            if re.sub(r"\.TW$", "", str(c.get("ticker", "")), flags=re.I).strip().upper() == d["ticker"]), None)
+        if not openai:
+            raise RuntimeError(f"OpenAI did not return a research record for {d['ticker']}; refusing to write partial CSV")
 
-        cls = normalize_classification(claude, d)
+        cls = normalize_classification(openai, d)
         row = {
             "ticker": d["ticker"],
-            "主題標籤": normalize_topic_labels(claude.get("topic_ids") if claude else []),
-            "繁中名稱": d.get("verifiedProduct", {}).get("name") or (claude.get("繁中名稱") if claude else None) or d["etfName"],
+            "主題標籤": normalize_topic_labels(openai.get("topic_ids") if openai else []),
+            "繁中名稱": d.get("verifiedProduct", {}).get("name") or (openai.get("繁中名稱") if openai else None) or d["etfName"],
             **cls,
-            "繁中敘述": (claude.get("繁中敘述") if claude else None) or f"{d['etfName']}（{d['ticker']}）為台灣掛牌之ETF。",
+            "繁中敘述": openai["繁中敘述"],
         }
         rows.append(row)
 
@@ -1215,7 +1271,7 @@ def main():
 
     print(f"\n✅ 已輸出 {len(rows)} 檔 ETF → {out_path}")
     print(f"   TinyFish 搜尋: {sum(d.get('searchAttempts',1) for d in ticker_data)} 次")
-    print(f"   Claude 呼叫: {claude_info['calls']} 次 ({claude_info['input_tokens']}+{claude_info['output_tokens']} tokens, ${claude_info['cost_usd']:.6f})")
+    print(f"   OpenAI 呼叫: {openai_info['calls']} 次 ({openai_info['input_tokens']}+{openai_info['output_tokens']} tokens, ${openai_info['cost_usd']:.6f})")
 
 
 if __name__ == "__main__":
