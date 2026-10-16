@@ -55,9 +55,9 @@ OPENAI_OUTPUT_PRICE = float(os.environ.get("OPENAI_OUTPUT_PRICE_PER_MILLION_USD"
 URL_TO_MARKDOWN_API = os.environ.get("URL_TO_MARKDOWN_API", "http://127.0.0.1:8000").rstrip("/")
 URL_TO_MARKDOWN_TIMEOUT = int(os.environ.get("URL_TO_MARKDOWN_TIMEOUT_SECONDS", "45"))
 OPENAI_BATCH_SIZE = max(1, min(3, int(os.environ.get("OPENAI_BATCH_SIZE", "3"))))
-MIN_DESCRIPTION_CHARACTERS = 280
-MIN_DESCRIPTION_HAN_CHARACTERS = 160
-MIN_DESCRIPTION_SENTENCES = 3
+MIN_DESCRIPTION_CHARACTERS = 360
+MIN_DESCRIPTION_HAN_CHARACTERS = 220
+MIN_DESCRIPTION_SENTENCES = 4
 OPENAI_MAX_SEARCH_RESULTS = 8
 OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000
 OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000
@@ -148,11 +148,18 @@ def validate_description(text):
     compact = re.sub(r"\s", "", value)
     sentences = [part.strip() for part in re.split(r"[。！？!?]+", value) if part.strip()]
     unique_sentences = {re.sub(r"\s", "", part) for part in sentences}
+    date_pattern = re.compile(r"(?:\d{1,2}\s*月\s*\d{1,2}\s*日|(?<!\d)\d{1,2}[/-]\d{1,2}(?!\d))")
+    year_pattern = re.compile(r"(?:\d{4}\s*年|同年|今年|當年)")
+    unqualified_dates = sum(
+        bool(date_pattern.search(sentence) and not year_pattern.search(sentence))
+        for sentence in sentences
+    )
     stats = {
         "characters": len(compact),
         "han_characters": len(re.findall(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", compact)),
         "sentences": len(sentences),
         "unique_sentences": len(unique_sentences),
+        "unqualified_dates": unqualified_dates,
     }
     issues = []
     if stats["characters"] < MIN_DESCRIPTION_CHARACTERS:
@@ -163,6 +170,8 @@ def validate_description(text):
         issues.append(f"under {MIN_DESCRIPTION_SENTENCES} sentences")
     if stats["unique_sentences"] < stats["sentences"]:
         issues.append("contains repeated sentences")
+    if stats["unqualified_dates"]:
+        issues.append("contains dates without a year")
     return issues, stats
 
 def verified_product_name(ticker, inferred_name):
@@ -1079,7 +1088,7 @@ def markdown_evidence_for_prompt(data):
 def build_openai_prompt(ticker_data):
     schema = """你是一位台灣ETF研究分析師。請根據以下每檔ETF的原始資料，為每檔ETF完成兩件事：
 
-1. **繁中敘述**：用繁體中文寫一段約300至350字的ETF介紹，至少280個非空白字元、160個中文字，並寫成至少3句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。不得捏造缺少的數字或細節，也不得用重述名稱、泛泛投資風險或空洞建議拉長篇幅。資料不足以寫成至少280字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
+1. **繁中敘述**：用繁體中文寫一段約400至500字的ETF介紹，至少360個非空白字元、220個中文字，並寫成至少4句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率及適合的投資人類型。日期若有年份來源，應明確寫出年份；同一期間的後續日期可用「同年」簡寫。清楚區分實際持倉、指數成分股、募集時預擬配置及僅供舉例的標的；來源有「不代表基金持有」等註記時，不可把例示公司描述為實際持股。不得捏造缺少的數字或細節，也不得用重述名稱、空泛風險句、無關免責聲明或「資料未提供」等填充語拉長篇幅。資料不足以寫成至少360字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
 2. **分類校正**：檢查並校正以下欄位（如果預設分類有誤請修正）：
    - zacks_category: Commodities / Currency / Equity / Fixed Income
    - zacks_sector: 只有Fixed Income才需填，否則留空
@@ -1093,7 +1102,7 @@ def build_openai_prompt(ticker_data):
 
 3. **主題分類**：只根據本題提供的 ETF 名稱、追蹤指數、投資策略、搜尋摘要與正文證據，選出 0 到 5 個 topic_ids；禁止用外部知識推測成分股或曝險。沒有明確聚焦主題時回傳空陣列。品質因子(20)只在文字明確以 profitability、ROE、growth、safety 等品質因子作為選股標準時使用；「品質」「優質」「護城河」等一般用語不足以選擇。名稱或策略明確包含 REITs、不動產或房地產時選房地產循環(28)。若選擇 9、15、22、26 中任一項，必須同時選擇全部四項；這四項會佔用四個名額，最多僅能再選一項。只能使用下列 id：1=乾淨能源、2=電動/自駕車、3=區塊鏈、4=5G、5=大麻、6=機器人、7=雲端運算、8=網路安全、9=人工智慧、10=電商、11=基礎建設、12=網路、13=天然資源、14=黃金礦業、15=半導體、16=股利因子、17=動能因子、18=規模因子-等權重、19=波動率因子、20=品質因子、21=油氣、22=景氣擴張、23=景氣趨緩、24=景氣衰退、25=景氣復甦、26=生產力循環、27=通膨循環、28=房地產循環、29=美元循環、30=製造業循環、32=比特幣（現貨）、33=比特幣（期貨）、34=鋰電池/鋰礦、35=水資源、36=元宇宙、37=遊戲、38=金融科技、39=太空經濟、41=航運、42=核能/鈾礦、43=國防/軍工。
 
-請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 280 個非空白字元、160 個中文字和 3 句不重複的完整句子；缺乏來源支持的細節請省略，不得用搜尋標題或模板句代替研究敘述。
+請回傳 JSON 物件，格式為 {"results": [...]}；results 中每個元素包含 ticker, 繁中名稱, 繁中敘述, zacks_category, zacks_sector, region_general, region_specific, commodity_type, currency, leveraged, actively_managed, risk_rank, topic_ids。topic_ids 必須是由整數組成的 JSON 陣列。繁中敘述至少 360 個非空白字元、220 個中文字和 4 句不重複的完整句子；日期年份、實際與預擬持倉區分必須依來源忠實表達；缺乏來源支持的細節請省略，不得用搜尋標題或模板句代替研究敘述。
 只回覆符合指定 JSON schema 的內容，不要其他文字。"""
 
     blocks = ""

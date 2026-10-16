@@ -2,7 +2,7 @@
 
 ## 目的
 
-`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-6-luna`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。敘述目標為約 300 至 350 字，至少 280 個非空白字元、160 個中文字及 3 句不重複的完整句子，否則拒絕輸出。API 錯誤日誌會遮蔽金鑰內容。
+`etf_research_update.py` 是台灣掛牌 ETF 的命令列研究工具。輸入一或多個 ticker 後，它會以 TinyFish 搜尋公開資料、用 URL-to-Markdown 取回選定頁面的正文，再交由 OpenAI Responses API（預設模型 `gpt-6-luna`）產生繁中敘述與分類建議，最後輸出 UTF-8 BOM CSV。敘述目標為約 400 至 500 字，至少 360 個非空白字元、220 個中文字及 4 句不重複的完整句子，並清楚區分實際持倉、指數成分股、募集時預擬配置與例示標的；未達標時拒絕輸出。API 錯誤日誌會遮蔽金鑰內容。
 
 此檔案與 `etf_research.py` 採用相同研究、分類、風險驗證與模型呼叫流程。唯一的輸出差異是移除了下列 CSV 欄位：
 
