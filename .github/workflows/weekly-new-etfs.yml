@@ -3,7 +3,7 @@ name: Weekly New ETF Research
 on:
   schedule:
     # 14:00 Asia/Taipei = 06:00 UTC, every Thursday.
-    - cron: "0 6 * * 4"
+    - cron: "0 6 * * 2,4"
   workflow_dispatch:
 
 permissions:
