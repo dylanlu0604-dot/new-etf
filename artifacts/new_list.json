@@ -1,10 +1,20 @@
 {
-  "generated_at": "2026-10-16T18:44:31.888057+08:00",
-  "as_of_date": "2026-10-16",
-  "moneydj_filter": "成立日期 >= 2026-07-08",
+  "generated_at": "2026-10-29T10:13:01.576802+08:00",
+  "as_of_date": "2026-10-29",
+  "moneydj_filter": "成立日期 >= 2026-07-21",
   "source": "moneydj-only",
   "crawler_warnings": [],
   "moneydj": [
+    {
+      "ticker": "009831",
+      "name": "FT核心AI電力算力",
+      "established_date": "2026-10-19"
+    },
+    {
+      "ticker": "009832",
+      "name": "兆豐美國黃金",
+      "established_date": "2026-10-16"
+    },
     {
       "ticker": "00416A",
       "name": "主動台新臺灣中小",
@@ -72,6 +82,8 @@
     }
   ],
   "new_list": [
+    "009831",
+    "009832",
     "00416A",
     "00415A",
     "00992B",
