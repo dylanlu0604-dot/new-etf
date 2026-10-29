@@ -871,9 +871,11 @@ def pre_classify(ticker, name):
     is_leveraged = bool(re.search(r"槓桿|反向|正[2二]|反[1一]|2[xX倍]|-1[xX倍]", name))
 
     cat = "Equity"
+    mining_company_fund = bool(re.search(r"礦業|礦商|礦企|金礦|銀礦|mining|miners?", name, re.I))
     if re.search(r"債券|bond|公債|公司債|投資等級債|金融債", name, re.I):
         cat = "Fixed Income"
-    elif re.search(r"黃金|原油|白銀|商品|commodity", name, re.I):
+    elif (not mining_company_fund
+          and re.search(r"黃金|原油|白銀|商品|commodity", name, re.I)):
         cat = "Commodities"
     elif re.search(r"外匯|currency|匯率", name, re.I):
         cat = "Currency"
@@ -1203,6 +1205,7 @@ def build_openai_prompt(ticker_data):
 1. **繁中敘述**：用繁體中文寫一段約400至500字的ETF介紹，至少360個非空白字元、220個中文字，並寫成至少4句不重複且各含具體資訊的完整句子；全文仍是一個段落，不要用條列，也不要用搜尋標題加模板句充數。只使用本批資料及明確來源支持的事實；優先使用 URL to Markdown 正文，再參考搜尋摘要。盡量涵蓋發行投信公司、掛牌日期、追蹤指數或投資策略、主要投資產業與地區、基金規模或募集情況、經理費/保管費、經理人、配息頻率。只有來源明確描述適合的投資人時才寫適合度；不可僅憑策略或 RR 等級自行推論。日期若有年份來源，應明確寫出年份；同一期間的後續日期可用「同年」簡寫。清楚區分實際持倉、指數成分股、募集時預擬配置及僅供舉例的標的；來源有「不代表基金持有」等註記時，不可把例示公司描述為實際持股。判斷持倉資料時必須比對資料日期與基金成立日：若資料早於成立日，即使網頁稱為「持股」也不得寫成基金實際持倉；僅在來源明確時稱為指數成分、上市前預擬配置或例示，標明資料日期並說明不是實際持倉，狀態不清楚就省略個股名稱。若基金不配息或不進行收益分配，不得把領息、現金收入或定期現金流寫成投資人的目標；應改以資本增值或資產累積描述，不能使用「不定期領息」等矛盾說法。費率若按資產規模級距列示，不得自行寫成僅對超額部分分段計費；債券信評與剔除條件需精確保留來源的觀察期間和降評幅度。不得捏造缺少的數字或細節，也不得用重述名稱、空泛風險句、無關免責聲明或「資料未提供」等填充語拉長篇幅。資料不足以寫成至少360字的可靠介紹時，仍只寫有來源支持的內容；程式會拒收未達驗收條件的結果，不會補上備用短句。
 2. **分類校正**：檢查並校正以下欄位（如果預設分類有誤請修正）：
    - zacks_category: Commodities / Currency / Equity / Fixed Income
+   - 投資礦業公司股票的基金（例如金礦公司股票）屬於 Equity；只有直接投資商品或商品期貨等商品曝險時才屬於 Commodities。
    - zacks_sector: 只有Fixed Income才需填，否則留空
    - region_general: Developed Asia Pacific / Developed Europe / Developed Markets / Emerging Asia Pacific / Emerging Markets / Global / North America
    - region_specific: Broad / China / ex-China / India / Japan / South Korea / Taiwan / U.S. / Vietnam
@@ -1351,9 +1354,7 @@ def normalize_classification(openai, data):
     classification_name = (verified.get("name") or (openai or {}).get("繁中名稱")
                            or data["etfName"])
     name_rules = pre_classify(data["ticker"], classification_name)
-    rule_category = (verified.get("zacksCategory") or
-                     (pre["zacksCategory"] if pre["zacksCategory"] != "Equity"
-                      else name_rules["zacksCategory"]))
+    rule_category = (verified.get("zacksCategory") or name_rules["zacksCategory"])
     rule_zacks_sector = (verified.get("zacksSector") or pre.get("zacksSector")
                          or name_rules["zacksSector"])
     rule_commodity_type = pre.get("commodityType") or name_rules["commodityType"]
@@ -1361,9 +1362,10 @@ def normalize_classification(openai, data):
     has_explicit_korea_region = bool(re.search(
         r"台日韓|韓國|korea|kospi",
         classification_name, re.I))
-    cat = (rule_category if rule_category != "Equity"
-           else allowed_value(openai.get("zacks_category") if openai else None,
-                              "zacks_category", rule_category))
+    # Heuristics provide a fallback, not an override: the source-backed model
+    # result must be able to correct a mistaken name-based classification.
+    cat = allowed_value(openai.get("zacks_category") if openai else None,
+                        "zacks_category", rule_category)
     candidate_general = verified.get("regionGeneral") or (name_rules["regionGeneral"] if has_explicit_korea_region else allowed_value(openai.get("region_general") if openai else None, "region_general", pre["regionGeneral"]))
     candidate_specific = verified.get("regionSpecific") or (name_rules["regionSpecific"] if has_explicit_korea_region else allowed_value(openai.get("region_specific") if openai else None, "region_specific", pre["regionSpecific"]))
     region_general, region_specific = normalize_region_pair(
