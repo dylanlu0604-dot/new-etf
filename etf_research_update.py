@@ -74,6 +74,9 @@ OPENAI_MAX_SEARCH_RESULTS = 8
 OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000
 OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000
 VERIFIED_PRODUCT_OVERRIDES = {
+    "009832": {
+        "zacksCategory": "Equity",
+    },
     "00991B": {
         "name": "貝萊德iShares安碩10年期以上A級美元公司債ETF",
         "zacksCategory": "Fixed Income",
@@ -1362,10 +1365,11 @@ def normalize_classification(openai, data):
     has_explicit_korea_region = bool(re.search(
         r"台日韓|韓國|korea|kospi",
         classification_name, re.I))
-    # Heuristics provide a fallback, not an override: the source-backed model
-    # result must be able to correct a mistaken name-based classification.
-    cat = allowed_value(openai.get("zacks_category") if openai else None,
-                        "zacks_category", rule_category)
+    # Explicitly verified categories win. Otherwise, name heuristics are a
+    # fallback that the source-backed model can correct.
+    cat = (verified["zacksCategory"] if verified.get("zacksCategory")
+           else allowed_value(openai.get("zacks_category") if openai else None,
+                              "zacks_category", rule_category))
     candidate_general = verified.get("regionGeneral") or (name_rules["regionGeneral"] if has_explicit_korea_region else allowed_value(openai.get("region_general") if openai else None, "region_general", pre["regionGeneral"]))
     candidate_specific = verified.get("regionSpecific") or (name_rules["regionSpecific"] if has_explicit_korea_region else allowed_value(openai.get("region_specific") if openai else None, "region_specific", pre["regionSpecific"]))
     region_general, region_specific = normalize_region_pair(
