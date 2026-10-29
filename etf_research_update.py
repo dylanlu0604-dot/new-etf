@@ -74,9 +74,6 @@ OPENAI_MAX_SEARCH_RESULTS = 8
 OPENAI_MAX_MARKDOWN_CHARS_PER_SOURCE = 3000
 OPENAI_MAX_MARKDOWN_CHARS_PER_TICKER = 9000
 VERIFIED_PRODUCT_OVERRIDES = {
-    "009832": {
-        "zacksCategory": "Equity",
-    },
     "00991B": {
         "name": "貝萊德iShares安碩10年期以上A級美元公司債ETF",
         "zacksCategory": "Fixed Income",
