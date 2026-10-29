@@ -1,10 +1,15 @@
 {
-  "generated_at": "2026-10-29T10:13:01.576802+08:00",
+  "generated_at": "2026-10-29T20:08:30.864182+08:00",
   "as_of_date": "2026-10-29",
   "moneydj_filter": "成立日期 >= 2026-07-21",
   "source": "moneydj-only",
   "crawler_warnings": [],
   "moneydj": [
+    {
+      "ticker": "00418A",
+      "name": "主動復華台灣新星",
+      "established_date": "2026-10-29"
+    },
     {
       "ticker": "009831",
       "name": "FT核心AI電力算力",
@@ -82,6 +87,7 @@
     }
   ],
   "new_list": [
+    "00418A",
     "009831",
     "009832",
     "00416A",
