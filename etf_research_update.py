@@ -173,8 +173,32 @@ OPENAI_AUDIT_TEXT_FORMAT = {
                         "ticker": {"type": "string"},
                         "approved": {"type": "boolean"},
                         "issues": {"type": "array", "items": {"type": "string"}},
+                        "corrections": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "field": {
+                                        "type": "string",
+                                        "enum": [
+                                            "繁中名稱", "繁中敘述", "zacks_category", "zacks_sector",
+                                            "region_general", "region_specific", "commodity_type",
+                                            "currency", "risk_rank", "topic_ids",
+                                        ],
+                                    },
+                                    "value": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "array", "items": {"type": "integer", "enum": sorted(TOPIC_LABELS)}, "maxItems": 5},
+                                        ]
+                                    },
+                                },
+                                "required": ["field", "value"],
+                                "additionalProperties": False,
+                            },
+                        },
                     },
-                    "required": ["ticker", "approved", "issues"],
+                    "required": ["ticker", "approved", "issues", "corrections"],
                     "additionalProperties": False,
                 },
             },
@@ -1266,8 +1290,10 @@ def build_openai_fact_check_prompt(original_prompt, candidate_results):
         "risk_rank 與 topic_ids 是否各自有來源支持、彼此一致且與敘述一致。"
         "特別核對 ETF 正式名稱、追蹤指數或主動策略、國家/區域、商品或債券種類、配息方式、日期、費用、經理人、"
         "持倉與指數成分的差異，以及每個主題標籤是否有獨立依據。若一項重要細節沒有來源、與來源矛盾，或描述與分類互相衝突，"
-        "就拒絕該 ticker，並在 issues 中指出欄位、錯誤內容及應如何修正或刪除；不要只因文字流暢或字數達標而核准。"
-        "若所有事實與欄位均有依據且一致，approved 才能為 true 並回傳空 issues。"
+        "若查到欄位錯誤，必須直接在 corrections 提供要寫入的正確欄位和值，例如 zacks_category 應改成 Equity 時回傳"
+        "{\"field\":\"zacks_category\",\"value\":\"Equity\"}；若 commodity_type 也需清除，另外回傳空字串修正。"
+        "繁中敘述若有錯，corrections 必須提供修正後的完整繁中敘述。issues 用來說明原因；程式會套用 corrections 後再次查核。"
+        "不要只提出建議而不提供可套用的欄位和值。若所有事實與欄位均有依據且一致，approved 才能為 true 並回傳空 issues、空 corrections。"
         "只對待查核草稿中的 ticker 回傳 results，且每個恰好出現一次。\n\n原始來源任務：\n"
         + original_prompt
         + "\n\n待查核草稿（不可信，請逐項驗證）：\n"
@@ -1289,10 +1315,61 @@ def validate_openai_fact_check(expected_tickers, audit_results):
     failures = []
     for ticker in expected_tickers:
         item = by_ticker[ticker]
-        if item.get("approved") is not True or item.get("issues"):
+        if (item.get("approved") is not True or item.get("issues")
+                or item.get("corrections")):
             issues = item.get("issues") if isinstance(item.get("issues"), list) else []
             failures.append({"ticker": ticker, "issues": issues or ["fact-check did not approve the record"]})
     return failures
+
+
+def index_openai_fact_checks(expected_tickers, audit_results):
+    if not isinstance(audit_results, list):
+        return None
+    by_ticker = {str(item.get("ticker", "")).strip().upper(): item
+                 for item in audit_results if isinstance(item, dict)}
+    if (len(audit_results) != len(expected_tickers)
+            or set(by_ticker) != set(expected_tickers)
+            or len(by_ticker) != len(expected_tickers)):
+        return None
+    return by_ticker
+
+
+def apply_fact_check_corrections(candidate, corrections):
+    if not isinstance(corrections, list):
+        raise ValueError("fact-check corrections must be an array")
+    allowed_fields = {
+        "繁中名稱", "繁中敘述", "zacks_category", "zacks_sector",
+        "region_general", "region_specific", "commodity_type", "currency",
+        "risk_rank", "topic_ids",
+    }
+    changed = False
+    seen = set()
+    for correction in corrections:
+        if not isinstance(correction, dict):
+            raise ValueError("fact-check correction must be an object")
+        field = correction.get("field")
+        value = correction.get("value")
+        if field not in allowed_fields or field in seen:
+            raise ValueError(f"invalid or duplicate fact-check correction field: {field!r}")
+        seen.add(field)
+        if field == "topic_ids":
+            if (not isinstance(value, list) or len(value) > 5
+                    or any(not isinstance(item, int) or isinstance(item, bool) or item not in TOPIC_LABELS for item in value)
+                    or len(value) != len(set(value))):
+                raise ValueError("fact-check topic_ids correction is invalid")
+        else:
+            if not isinstance(value, str):
+                raise ValueError(f"fact-check correction for {field} must be a string")
+            if field in ALLOWED and value not in ["", *ALLOWED[field]]:
+                raise ValueError(f"fact-check correction for {field} is not an allowed value: {value!r}")
+            if field == "zacks_category" and not value:
+                raise ValueError("fact-check cannot clear zacks_category")
+        if candidate.get(field) != value:
+            candidate[field] = value
+            changed = True
+    if corrections and not changed:
+        raise ValueError("fact-check corrections did not change the candidate")
+    return changed
 
 
 def save_research_diagnostics(payload):
@@ -1498,21 +1575,69 @@ def main():
                         else:
                             valid_for_audit.append(item)
                     if valid_for_audit:
-                        audit_prompt = build_openai_fact_check_prompt(original_prompt, valid_for_audit)
-                        audit_resp = call_openai(audit_prompt, OPENAI_AUDIT_TEXT_FORMAT)
-                        total_calls += 1
-                        total_input += audit_resp["input_tokens"]
-                        total_output += audit_resp["output_tokens"]
-                        total_cost += audit_resp["cost_usd"]
-                        audit = json.loads(audit_resp["text"])
-                        audit_failures = validate_openai_fact_check(
-                            [item["ticker"] for item in valid_for_audit], audit.get("results"))
-                        failures.extend(audit_failures)
-                        rejected_tickers = {failure["ticker"] for failure in audit_failures}
-                        if "batch" not in rejected_tickers:
-                            for item in valid_for_audit:
-                                if item["ticker"] not in rejected_tickers:
-                                    approved_results[item["ticker"]] = item
+                        to_audit = valid_for_audit
+                        correction_round = 0
+                        max_correction_rounds = 3
+                        while to_audit:
+                            audit_prompt = build_openai_fact_check_prompt(original_prompt, to_audit)
+                            audit_resp = call_openai(audit_prompt, OPENAI_AUDIT_TEXT_FORMAT)
+                            total_calls += 1
+                            total_input += audit_resp["input_tokens"]
+                            total_output += audit_resp["output_tokens"]
+                            total_cost += audit_resp["cost_usd"]
+                            audit = json.loads(audit_resp["text"])
+                            audit_by_ticker = index_openai_fact_checks(
+                                [item["ticker"] for item in to_audit], audit.get("results"))
+                            if audit_by_ticker is None:
+                                failures.append({"ticker": "batch", "issues": [
+                                    "fact-check returned missing, duplicate, or unexpected tickers"
+                                ]})
+                                break
+
+                            corrected_candidates = []
+                            for item in to_audit:
+                                ticker = item["ticker"]
+                                audit_item = audit_by_ticker[ticker]
+                                corrections = audit_item.get("corrections", [])
+                                if corrections:
+                                    try:
+                                        apply_fact_check_corrections(item, corrections)
+                                        if len(str(item.get("繁中名稱", "")).strip()) < 2:
+                                            raise ValueError("corrected official name is missing")
+                                        correction_issues, correction_stats = validate_description(item.get("繁中敘述"))
+                                        correction_issues.extend(validate_classification_output(item))
+                                        if correction_issues:
+                                            raise ValueError(
+                                                f"corrected candidate failed local validation: {correction_issues}; "
+                                                f"stats={correction_stats}"
+                                            )
+                                    except ValueError as exc:
+                                        failures.append({"ticker": ticker, "issues": [str(exc)]})
+                                    else:
+                                        print(f"     🔧 依來源查核直接修正 {ticker}: "
+                                              f"{[entry['field'] for entry in corrections]}", flush=True)
+                                        corrected_candidates.append(item)
+                                    continue
+
+                                if audit_item.get("approved") is True and not audit_item.get("issues"):
+                                    approved_results[ticker] = item
+                                else:
+                                    issues = audit_item.get("issues") if isinstance(audit_item.get("issues"), list) else []
+                                    failures.append({
+                                        "ticker": ticker,
+                                        "issues": issues or ["fact-check did not approve the record or provide corrections"],
+                                    })
+
+                            if not corrected_candidates:
+                                break
+                            correction_round += 1
+                            if correction_round >= max_correction_rounds:
+                                failures.extend({
+                                    "ticker": item["ticker"],
+                                    "issues": [f"fact-check still requested corrections after {max_correction_rounds} direct correction rounds"],
+                                } for item in corrected_candidates)
+                                break
+                            to_audit = corrected_candidates
                 failed_tickers = {failure["ticker"] for failure in failures}
                 for ticker in pending_tickers:
                     record = diagnostics["records"][ticker]
@@ -1573,11 +1698,15 @@ def main():
                 f"counts={description_stats}"
             )
 
-        cls = normalize_classification(openai, d)
+        cls = {field: openai.get(field, "") for field in (
+            "zacks_category", "zacks_sector", "region_general", "region_specific",
+            "commodity_type", "currency", "risk_rank",
+        )}
         row = {
             "ticker": d["ticker"],
             "主題標籤": normalize_topic_labels(openai.get("topic_ids") if openai else []),
-            "繁中名稱": d.get("verifiedProduct", {}).get("name") or (openai.get("繁中名稱") if openai else None) or d["etfName"],
+            "繁中名稱": (openai.get("繁中名稱") if openai else None)
+                        or d.get("verifiedProduct", {}).get("name") or d["etfName"],
             **cls,
             "繁中敘述": openai["繁中敘述"],
         }
