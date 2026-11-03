@@ -1,10 +1,15 @@
 {
-  "generated_at": "2026-10-29T20:08:30.864182+08:00",
-  "as_of_date": "2026-10-29",
-  "moneydj_filter": "成立日期 >= 2026-07-21",
+  "generated_at": "2026-11-03T21:28:58.094168+08:00",
+  "as_of_date": "2026-11-03",
+  "moneydj_filter": "成立日期 >= 2026-07-26",
   "source": "moneydj-only",
   "crawler_warnings": [],
   "moneydj": [
+    {
+      "ticker": "00413A",
+      "name": "主動玉山關鍵科技",
+      "established_date": "2026-11-03"
+    },
     {
       "ticker": "00418A",
       "name": "主動復華台灣新星",
@@ -69,24 +74,10 @@
       "ticker": "00987D",
       "name": "主動統一美債量化",
       "established_date": "2026-08-11"
-    },
-    {
-      "ticker": "00410A",
-      "name": "主動永豐科技趨勢",
-      "established_date": "2026-07-23"
-    },
-    {
-      "ticker": "009826",
-      "name": "貝萊德世界股票",
-      "established_date": "2026-07-22"
-    },
-    {
-      "ticker": "00991B",
-      "name": "貝萊德A級公司債",
-      "established_date": "2026-07-22"
     }
   ],
   "new_list": [
+    "00413A",
     "00418A",
     "009831",
     "009832",
@@ -99,9 +90,6 @@
     "00409A",
     "009829",
     "00411A",
-    "00987D",
-    "00410A",
-    "009826",
-    "00991B"
+    "00987D"
   ]
 }
