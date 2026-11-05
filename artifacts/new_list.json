@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-03T21:28:58.094168+08:00",
-  "as_of_date": "2026-11-03",
-  "moneydj_filter": "成立日期 >= 2026-07-26",
+  "generated_at": "2026-11-05T21:52:35.606858+08:00",
+  "as_of_date": "2026-11-05",
+  "moneydj_filter": "成立日期 >= 2026-07-28",
   "source": "moneydj-only",
   "crawler_warnings": [],
   "moneydj": [
